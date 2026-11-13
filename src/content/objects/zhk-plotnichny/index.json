@@ -1,0 +1,15 @@
+{
+  "title": "Плотничный",
+  "type": "residential",
+  "location": "г. Нижний Новгород",
+  "works": "Фасадная система Alutech ALT F50, створки Alutech ALT W72 HI+.",
+  "photos": [
+    "/src/content/objects/zhk-plotnichny/01.jpg",
+    "/src/content/objects/zhk-plotnichny/02.jpg",
+    "/src/content/objects/zhk-plotnichny/03.jpg",
+    "/src/content/objects/zhk-plotnichny/04.jpg",
+    "/src/content/objects/zhk-plotnichny/05.jpg"
+  ],
+  "published": true,
+  "order": 20
+}

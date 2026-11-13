@@ -1,0 +1,15 @@
+{
+  "title": "Клубный дом на Ярославской",
+  "type": "special",
+  "location": "г. Нижний Новгород",
+  "works": "Цельностеклянные козырьки над входами с применением системы консольного крепления.\nЦельностеклянные ограждения кровли.",
+  "photos": [
+    "/src/content/objects/klubny-dom-yaroslavskaya/01.jpg",
+    "/src/content/objects/klubny-dom-yaroslavskaya/02.jpg",
+    "/src/content/objects/klubny-dom-yaroslavskaya/03.jpg",
+    "/src/content/objects/klubny-dom-yaroslavskaya/04.jpg",
+    "/src/content/objects/klubny-dom-yaroslavskaya/05.jpg"
+  ],
+  "published": true,
+  "order": 160
+}

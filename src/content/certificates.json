@@ -1,0 +1,32 @@
+{
+  "items": [
+    {
+      "image": "/src/assets/company-certificates/alutech-at-1278.jpg",
+      "alt": "Сертификат Алютех № АТ 1278/26 о прохождении технической аттестации"
+    },
+    {
+      "image": "/src/assets/company-certificates/alutech-dealer.jpg",
+      "alt": "Сертификат дилера Алютех"
+    },
+    {
+      "image": "/src/assets/company-certificates/raico.jpg",
+      "alt": "Сертификат RAICO"
+    },
+    {
+      "image": "/src/assets/company-certificates/agc.jpg",
+      "alt": "Сертификат AGC Premium Certified Partner"
+    },
+    {
+      "image": "/src/assets/company-certificates/alutech-tr-486.jpg",
+      "alt": "Сертификат Алютех № ТР 486/26"
+    },
+    {
+      "image": "/src/assets/company-certificates/alutech-tr-487.jpg",
+      "alt": "Сертификат Алютех № ТР 487/26"
+    },
+    {
+      "image": "/src/assets/company-certificates/alutech-tr-488.jpg",
+      "alt": "Сертификат Алютех № ТР 488/26"
+    }
+  ]
+}

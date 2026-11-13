@@ -1,0 +1,41 @@
+---
+// Страница услуги (/services/<slug>/) — открывается с карточки на «Услугах». Одна заготовка на все 11 услуг,
+// тексты, фото и объекты — в src/data/services.ts.
+// Светлый первый экран, как у страниц аудиторий, но справа несколько фото с точками (SplitHero slides) →
+// «Наши объекты» (карусель из 4 объектов по смыслу услуги) → светлая полоса «Узнать о нас больше» → главная → подвал.
+import Base from '../../layouts/Base.astro';
+import SplitHero from '../../components/SplitHero.astro';
+import Projects from '../../components/home/Projects.astro';
+import ObjectModal from '../../components/ObjectModal.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { services, type Service } from '../../data/services';
+import { projects } from '../../data/projects';
+
+export function getStaticPaths() {
+  return services.map((service) => ({ params: { slug: service.slug }, props: { service } }));
+}
+
+const { service } = Astro.props as { service: Service };
+// объекты — в том порядке, как указаны у услуги; снятый с публикации объект просто пропадёт из карусели
+const ourObjects = service.objects.map((slug) => projects.find((p) => p.slug === slug)).filter((p) => p !== undefined);
+const slides = service.photos.map((image, i) => ({ image, alt: `${service.title} — фото ${i + 1}` }));
+// фото в полосе «Узнать о нас больше» — последнее фото услуги (первое и так видно на первом экране)
+const bandImg = service.photos.at(-1) ?? service.img;
+const description = service.text.split('. ')[0] + '.';
+---
+<Base solidHeader title={service.title} description={description} image={service.photos[0] ?? service.img}>
+  <SplitHero
+    title={service.title}
+    text={service.text}
+    slides={slides}
+    crumbs={[{ label: 'Услуги', href: '/services/' }, { label: service.title }]}
+    down="#projects"
+    full
+  />
+
+  <Projects title="Наши объекты" text="" items={ourObjects} rounded />
+
+  <CtaBand title="Узнать о нас больше" button="Перейти" href="/" light image={bandImg} position="50% 50%" />
+
+  <ObjectModal projects={ourObjects} />
+</Base>

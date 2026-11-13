@@ -1,0 +1,15 @@
+{
+  "title": "Норкемикал",
+  "type": "special",
+  "location": "г. Нижний Новгород",
+  "works": "Полная замена кровельного пирога эксплуатируемой террасы, замена системы остекления кровли на систему RAICO THERM+ S-I.",
+  "photos": [
+    "/src/content/objects/norkemikal/01.jpg",
+    "/src/content/objects/norkemikal/02.jpg",
+    "/src/content/objects/norkemikal/03.jpg",
+    "/src/content/objects/norkemikal/04.jpg",
+    "/src/content/objects/norkemikal/05.jpg"
+  ],
+  "published": true,
+  "order": 170
+}

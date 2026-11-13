@@ -1,0 +1,17 @@
+{
+  "title": "Холмс",
+  "type": "residential",
+  "location": "г. Пенза",
+  "works": "Фасадная система Alutech ALT F50, створки Alutech ALT W72 HI+.",
+  "photos": [
+    "/src/content/objects/zhk-holms/01.jpg",
+    "/src/content/objects/zhk-holms/02.jpg",
+    "/src/content/objects/zhk-holms/03.jpg",
+    "/src/content/objects/zhk-holms/04.jpg",
+    "/src/content/objects/zhk-holms/05.jpg",
+    "/src/content/objects/zhk-holms/06.jpg",
+    "/src/content/objects/zhk-holms/07.jpg"
+  ],
+  "published": true,
+  "order": 40
+}

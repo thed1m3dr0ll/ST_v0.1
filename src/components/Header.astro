@@ -1,0 +1,298 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import logoStacked from '../assets/brand/logo-white-stacked.png';
+import { nav, site } from '../data/site';
+import { services } from '../data/services';
+
+const { solid = false } = Astro.props as { solid?: boolean }; // solid — залитая шапка с самого начала (светлый первый экран)
+const path = Astro.url.pathname;
+const isActive = (href: string) => path.startsWith(href);
+// Под «Услугами» — кнопки всех услуг (каждая ведёт на страницу услуги)
+const SERVICES = '/services/';
+const menu = nav.map((item) => item.href === SERVICES
+  ? { ...item, children: services.map((s) => ({ label: s.title, href: `/services/${s.slug}/` })) }
+  : item);
+// Длинный список (услуги) — в два столбца, сверху вниз; rowsOf — сколько пунктов в одном столбце
+const rowsOf = (list: unknown[]) => Math.ceil(list.length / (list.length > 6 ? 2 : 1));
+---
+<header class:list={['header', { 'header--solid': solid }]} data-header>
+  <div class="header__inner">
+    <a href="/" class="header__logo" aria-label="Стекляника — на главную">
+      <Image src={logoStacked} alt="Стекляника" width={220} class="header__logo-img" loading="eager" />
+    </a>
+
+    <nav class="header__nav" aria-label="Основная навигация">
+      {menu.map((item) => item.children ? (
+        <div class="header__item">
+          <a href={item.href} class:list={['header__link', { 'is-active': isActive(item.href) }]} aria-haspopup="true">{item.label}</a>
+          <div class="header__drop">
+            <div class:list={['header__panel', { 'header__panel--cols': rowsOf(item.children) < item.children.length }]} style={`--rows:${rowsOf(item.children)}`}>
+              {item.children.map((c) => (
+                <a href={c.href} class:list={['header__drop-link', { 'is-active': path === c.href }]}>{c.label}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <a href={item.href} class:list={['header__link', { 'is-active': isActive(item.href) }]}>{item.label}</a>
+      ))}
+    </nav>
+
+    <div class="header__actions">
+      <a href={site.phoneHref} class="header__phone">{site.phone}</a>
+      <a href={site.phoneHref} class="header__phone-icon" aria-label={`Позвонить: ${site.phone}`}><Icon name="phone" size={20} /></a>
+      <button type="button" class="header__cta" data-lead="Запросить расчёт">
+        <span>Запросить расчёт</span><Icon name="arrow-right" size={20} stroke={1} />
+      </button>
+      <button type="button" class="header__burger" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mmenu" id="mobile-menu" data-menu hidden>
+  <div class="pattern"></div>
+  <nav class="mmenu__nav" aria-label="Мобильная навигация">
+    {nav.map((item, i) => item.children ? (
+      <div class="mmenu__group" data-group>
+        <a href={item.href} class="mmenu__link" style={`--i:${i}`} aria-expanded="false" data-group-toggle>{item.label}</a>
+        <div class="mmenu__sub">
+          <div class="mmenu__sub-in">
+            {item.children.map((c) => <a href={c.href} class="mmenu__sublink">{c.label}</a>)}
+          </div>
+        </div>
+      </div>
+    ) : (
+      <a href={item.href} class="mmenu__link" style={`--i:${i}`}>{item.label}</a>
+    ))}
+  </nav>
+  <div class="mmenu__contacts">
+    <a href={site.phoneHref} class="mmenu__phone">{site.phone}</a>
+    <a href={`mailto:${site.email}`}>{site.email}</a>
+    <span>{site.workHours}</span>
+  </div>
+  <button type="button" class="btn btn--glass btn--block" data-lead="Запросить расчёт">
+    Запросить расчёт проекта <Icon name="arrow-right" />
+  </button>
+</div>
+
+<style>
+  .header {
+    position: fixed; inset: 0 0 auto; z-index: 50;
+    height: var(--header-h);
+    transition: height .35s var(--ease);
+  }
+  /* Заливка шапки — отдельным слоем ::before, а не у самой шапки: элемент с backdrop-filter отрезает своим
+     потомкам вид на страницу, и стеклянные выпадающие блоки переставали размывать то, что под ними.
+     Тень под шапкой — тоже слой (::after, полоса 28px ниже шапки). Вырез-«просвет» вокруг открытого блока
+     убран по просьбе пользователя (2026-11-09): нижний край шапки всегда ровный, блоки висят под ним */
+  .header::before, .header::after {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    opacity: 0; transition: opacity .35s var(--ease);
+  }
+  .header::before { background: rgba(61,74,71,.94); backdrop-filter: blur(10px); }
+  .header::after {
+    top: 100%; bottom: -28px;
+    background: linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.05) 45%, transparent);
+  }
+  .header.is-scrolled, .header.is-menu, .header--solid { --header-h: 76px; }
+  .header.is-scrolled::before, .header.is-menu::before, .header--solid::before,
+  .header.is-scrolled::after, .header.is-menu::after, .header--solid::after { opacity: 1; }
+  .header__inner {
+    height: 100%; max-width: 1920px; margin-inline: auto;
+    padding-inline: clamp(16px, 3.2vw, 60px) clamp(16px, 1.9vw, 36px);
+    display: flex; align-items: center; gap: 24px;
+  }
+  .header__logo { position: relative; flex: none; display: block; }
+  /* Логотип всегда в фирменном формате: знак, под ним название. При прокрутке — только уменьшается */
+  .header__logo-img { width: clamp(86px, 5.7vw, 110px); height: auto; transition: width .35s var(--ease); }
+  .is-scrolled .header__logo-img, .is-menu .header__logo-img, .header--solid .header__logo-img { width: 84px; }
+
+  /* Расстояние между словами меню прежнее: gap + отступы плашки ≈ старый gap clamp(18px, 2.3vw, 44px) */
+  /* меню растянуто на всю высоту шапки — тогда пункт с подменю тоже во всю высоту и его «top: 100%» = нижний край шапки */
+  .header__nav { flex: 1; align-self: stretch; display: flex; align-items: center; justify-content: center; gap: clamp(4px, .6vw, 12px); }
+  /* Пункт меню при наведении (и пункт текущей страницы) — скруглённая плашка-стекло, как кнопка «Запросить расчёт»
+     (вместо подчёркивания, просьба пользователя). Плашка есть всегда, но прозрачная — слова не сдвигаются */
+  .header__link {
+    position: relative; padding: 9px clamp(10px, .85vw, 16px); border-radius: 30px;
+    border: 1px solid transparent;
+    font-weight: 500; font-size: 13px; letter-spacing: .13em; text-transform: uppercase; color: #fbfdff;
+    transition: background .25s var(--ease), border-color .25s var(--ease), backdrop-filter .25s var(--ease);
+  }
+  .header__link:hover, .header__link.is-active, .header__item:hover .header__link, .header__item:focus-within .header__link {
+    background: rgba(61,74,71,.3); border-color: rgba(251,253,255,.18); backdrop-filter: blur(6px);
+  }
+  /* на залитой шапке (мох) тёмное стекло не видно — чуть светлее */
+  :is(.is-scrolled, .header--solid) .header__link:is(:hover, .is-active),
+  :is(.is-scrolled, .header--solid) .header__item:is(:hover, :focus-within) .header__link { background: rgba(251,253,255,.08); }
+
+  /* Выпадающий список под пунктом («О нас» → «События», «Услуги» → услуги, «Партнерам» → 4 страницы) —
+     один блок из тёмно-зелёного стекла со светлым текстом, без линий между пунктами; услуги — в два столбца
+     (горизонтальная панель). Раньше пробовали: отдельные кнопки-стёкла на каждый пункт («плохо видно»), белый блок.
+     Появляется плавно, а исчезает СРАЗУ (у скрытого состояния нет transition) — при переходе на соседний пункт
+     списки не накладываются. Прозрачный отступ сверху (padding-top) — «мостик», чтобы список не пропадал по пути мыши вниз.
+     Сдвиг при появлении — целые пиксели и без translate(-50%): иначе текст встаёт между пикселями и выглядит мутным.
+     Плавно проявляется сам блок, а не обёртка .header__drop: прозрачность (opacity < 1) у предка выключает размытие стекла.
+     Блок стоит ПОД шапкой: пункт растянут на всю её высоту, обёртка начинается ровно от нижнего края шапки,
+     блок — с небольшим отступом от него (в шапку не встраивается, просвета больше нет) */
+  .header__item { position: relative; align-self: stretch; display: flex; align-items: center; }
+  .header__drop {
+    position: absolute; left: 0; top: 100%; padding-top: 8px;
+    visibility: hidden; pointer-events: none;
+  }
+  .header__item:hover .header__drop, .header__item:focus-within .header__drop { visibility: visible; pointer-events: auto; }
+  /* мышь над шапкой — открыт только список пункта под мышью (даже если фокус остался на другом пункте) */
+  .header__nav:hover .header__item:not(:hover) .header__drop { visibility: hidden; }
+  .header__nav:hover .header__item:not(:hover) .header__link:not(.is-active) { background: transparent; border-color: transparent; backdrop-filter: none; }
+  .header__panel {
+    display: grid; padding: 8px 10px; border-radius: 9px; /* ширина — по самому длинному пункту (без min-width: «События» был растянут) */
+    /* Тёмно-зелёное стекло: мох .35 + размытие (было .72, потом .5 — пользователь попросил фон прозрачнее, текст не трогать);
+       brightness в backdrop-filter приглушает то, что под блоком, — над белым заголовком и светлыми экранами
+       блок остаётся тёмным и светлый текст читается. Светлую рамку по краю пользователь попросил убрать */
+    background: rgba(61,74,71,.35); backdrop-filter: blur(18px) brightness(.62);
+    /* тень отделяет блок от фона (затемнение страницы под списком убрано по просьбе пользователя); только вниз */
+    box-shadow: 0 18px 36px -14px rgba(0,0,0,.4);
+    opacity: 0; transform: translateY(6px);
+  }
+  .header__item:hover .header__panel, .header__item:focus-within .header__panel {
+    opacity: 1; transform: none;
+    transition: opacity .2s var(--ease), transform .2s var(--ease);
+  }
+  .header__nav:hover .header__item:not(:hover) .header__panel { opacity: 0; transition: none; }
+  .header__panel--cols { grid-template-rows: repeat(var(--rows), auto); grid-auto-flow: column; column-gap: 18px; }
+  /* блок из одного пункта («События») — компактная плашка: с обычными отступами выглядел почти квадратным */
+  .header__panel:has(> :only-child) { padding: 4px; }
+  /* над тёмным фото первого экрана (шапка ещё прозрачная) — прозрачнее остальных списков: меньше мха и слабее
+     затемнение; на светлом фоне (шапка залита после прокрутки или на светлых страницах) — как все, иначе не читается */
+  .header:not(.is-scrolled, .header--solid) .header__panel:has(> :only-child) { background: rgba(61,74,71,.2); backdrop-filter: blur(14px) brightness(.8); }
+  .header__panel:has(> :only-child) .header__drop-link { padding: 8px 14px; }
+  .header__drop-link {
+    padding: 11px 12px; border-radius: 6px; white-space: nowrap;
+    font-weight: 500; font-size: 14px; line-height: 1.3; color: var(--brand-paper);
+    transition: background .2s var(--ease);
+  }
+  .header__drop-link:hover, .header__drop-link.is-active { background: rgba(251,253,255,.12); }
+
+  .header__actions { display: flex; align-items: center; gap: clamp(16px, 1.7vw, 32px); margin-left: auto; }
+  .header__phone { font-weight: 500; font-size: 15px; letter-spacing: .02em; color: #fbfdff; white-space: nowrap; }
+  .header__phone-icon { display: none; color: #fbfdff; }
+  .header__cta {
+    display: inline-flex; align-items: center; gap: 22px;
+    height: 50px; padding: 0 22px 0 35px; border-radius: 30px;
+    background: rgba(61,74,71,.3); border: 1px solid rgba(251,253,255,.18);
+    font-weight: 700; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: #fbfdff;
+    backdrop-filter: blur(6px); transition: background .25s var(--ease);
+  }
+  .header__cta:hover { background: var(--accent); }
+  .header__cta svg { transition: transform .25s var(--ease); }
+  .header__cta:hover svg { transform: translateX(3px); }
+
+  .header__burger { display: none; position: relative; width: 44px; height: 44px; border: 1px solid rgba(251,253,255,.35); border-radius: 9px; }
+  .header__burger span { position: absolute; left: 12px; right: 12px; height: 1.5px; background: #fbfdff; transition: transform .3s var(--ease), opacity .2s; }
+  .header__burger span:nth-child(1) { top: 15px; }
+  .header__burger span:nth-child(2) { top: 21px; }
+  .header__burger span:nth-child(3) { top: 27px; }
+  .is-menu .header__burger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .is-menu .header__burger span:nth-child(2) { opacity: 0; }
+  .is-menu .header__burger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  @media (max-width: 1360px) {
+    .header__phone { display: none; }
+    .header__phone-icon { display: inline-grid; }
+  }
+  @media (max-width: 1180px) {
+    .header__nav { display: none; }
+    .header__burger { display: block; }
+  }
+  @media (max-width: 640px) {
+    .header__cta { display: none; }
+    .header__logo-img { width: 80px; }
+    .is-scrolled .header__logo-img, .is-menu .header__logo-img, .header--solid .header__logo-img { width: 72px; }
+    .header.is-scrolled, .header.is-menu, .header--solid { --header-h: 64px; }
+  }
+
+  /* ---- Мобильное меню ---- */
+  .mmenu {
+    position: fixed; inset: 0; z-index: 45; overflow-y: auto;
+    padding: calc(var(--header-h) + 32px) var(--gutter) 32px;
+    background: var(--brand-moss);
+    display: flex; flex-direction: column; gap: 36px;
+    opacity: 0; transition: opacity .35s var(--ease);
+  }
+  .mmenu[hidden] { display: none; }
+  .mmenu.is-open { opacity: 1; }
+  .mmenu .pattern { background-image: url('/images/pattern-light.webp'); opacity: .05; }
+  .mmenu__nav { position: relative; display: grid; justify-items: start; }
+  .mmenu__link {
+    display: block; padding: 12px 0;
+    font-weight: 700; font-size: clamp(22px, 6vw, 32px); text-transform: uppercase; color: #fbfdff;
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0; transform: translateY(12px);
+    transition: opacity .45s var(--ease) calc(var(--i) * 50ms + 80ms), transform .45s var(--ease) calc(var(--i) * 50ms + 80ms);
+  }
+  .mmenu.is-open .mmenu__link { opacity: 1; transform: none; }
+  /* цвет пунктов не меняется при касании и у раскрытого пункта — иначе пункт выглядит «уже нажатым» (просьба пользователя) */
+  /* Пункт с подпунктами («О нас», «Партнерам»): первое нажатие раскрывает под ним список, второе — открывает
+     саму страницу пункта. Раскрыт только один список. Подпункты мельче и с отступом слева */
+  .mmenu__group { display: grid; justify-items: start; }
+  .mmenu__sub { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s var(--ease); }
+  .mmenu__group.is-open .mmenu__sub { grid-template-rows: 1fr; }
+  .mmenu__sub-in { display: grid; justify-items: start; overflow: hidden; padding-left: 18px; }
+  .mmenu__sublink {
+    display: block; padding: 7px 0;
+    font-weight: 500; font-size: clamp(13px, 3.6vw, 16px); letter-spacing: .06em; text-transform: uppercase;
+    color: rgba(251,253,255,.8);
+    opacity: 0; transition: opacity .25s var(--ease);
+  }
+  .mmenu__sublink:last-child { margin-bottom: 10px; }
+  .mmenu__group.is-open .mmenu__sublink { opacity: 1; transition-delay: .1s; }
+  .mmenu__contacts { position: relative; display: grid; gap: 8px; font-size: 15px; color: rgba(251,253,255,.75); }
+  .mmenu__phone { font-weight: 700; font-size: 22px; color: #fbfdff; }
+  .mmenu .btn { position: relative; margin-top: auto; }
+  @media (min-width: 1181px) { .mmenu { display: none !important; } }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]')!;
+  const menu = document.querySelector<HTMLElement>('[data-menu]')!;
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]')!;
+
+  const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 40);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  const setMenu = (open: boolean) => {
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', open ? 'Закрыть меню' : 'Открыть меню');
+    header.classList.toggle('is-menu', open);
+    document.body.classList.toggle('no-scroll', open);
+    if (open) {
+      menu.hidden = false;
+      requestAnimationFrame(() => menu.classList.add('is-open'));
+    } else {
+      menu.classList.remove('is-open');
+      setTimeout(() => { if (!menu.classList.contains('is-open')) { menu.hidden = true; openGroup(null); } }, 350);
+    }
+  };
+  toggle.addEventListener('click', () => setMenu(menu.hidden));
+
+  // Пункты с подпунктами: первое нажатие раскрывает список (остальные сворачиваются), второе — переход на страницу
+  const groups = Array.from(menu.querySelectorAll<HTMLElement>('[data-group]'));
+  const openGroup = (g: HTMLElement | null) => groups.forEach((x) => {
+    x.classList.toggle('is-open', x === g);
+    x.querySelector('[data-group-toggle]')!.setAttribute('aria-expanded', String(x === g));
+  });
+  groups.forEach((g) => g.querySelector('[data-group-toggle]')!.addEventListener('click', (e) => {
+    if (g.classList.contains('is-open')) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openGroup(g);
+  }));
+  menu.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('a, [data-lead]')) setMenu(false);
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) setMenu(false); });
+  window.matchMedia('(min-width: 1181px)').addEventListener('change', (e) => { if (e.matches) setMenu(false); });
+</script>

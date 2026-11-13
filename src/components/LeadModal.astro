@@ -1,0 +1,126 @@
+---
+// Всплывающая форма заявки. Открывается любой кнопкой с атрибутом data-lead="Заголовок".
+// Отправка пока не подключена (почта / CRM — подключим позже, см. src/scripts/leads.ts).
+// Если у кнопки есть ещё и атрибут data-lead-role, в форме появляется обязательный вопрос «Ваша сфера деятельности?»
+// (поле role; значение атрибута, например data-lead-role="Девелопер", сразу отмечает вариант).
+import Icon from './Icon.astro';
+import Consent from './Consent.astro';
+import { site } from '../data/site';
+
+const roles = ['Девелопер', 'Архитектор или дизайнер', 'Владелец бизнеса', 'Частное лицо'];
+---
+<dialog class="modal" data-lead-modal aria-labelledby="lead-title">
+  <div class="modal__box">
+    <div class="pattern pattern--fade-right"></div>
+    <button type="button" class="modal__close" aria-label="Закрыть" data-close><Icon name="x" /></button>
+
+    <form class="modal__form" data-lead-form novalidate>
+      <p class="eyebrow">Заявка на консультацию</p>
+      <h2 class="h2 modal__title" id="lead-title" data-lead-title>Запросить расчёт</h2>
+      <p class="lead">Оставьте контакты — инженер свяжется с вами, уточнит задачу и подготовит предварительный расчёт в течение 1 рабочего дня.</p>
+
+      <input type="hidden" name="source" data-lead-source />
+      <!-- disabled, пока скрыт: тогда поле не обязательное и не уходит с заявкой -->
+      <fieldset class="modal__roles" data-lead-roles hidden disabled>
+        <legend class="modal__roles-q">Ваша сфера деятельности? *</legend>
+        <div class="modal__roles-grid">
+          {roles.map((r) => (
+            <label class="modal__role">
+              <input type="radio" name="role" value={r} required />
+              <span class="modal__role-box"><Icon name="check" size={12} stroke={2} /></span>{r}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div class="modal__grid">
+        <div class="field"><label for="lead-name">Имя *</label><input id="lead-name" name="name" autocomplete="name" required /></div>
+        <div class="field"><label for="lead-phone">Телефон *</label><input id="lead-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+7 (___) ___-__-__" required data-phone /></div>
+      </div>
+      <div class="field"><label for="lead-msg">Комментарий</label><textarea id="lead-msg" name="message" placeholder="Тип объекта, площадь остекления, сроки"></textarea></div>
+      <Consent doc="consent" />
+      <p class="form-error" data-error role="alert" hidden></p>
+      <button type="submit" class="btn btn--lg btn--block">Отправить заявку <Icon name="arrow-right" /></button>
+    </form>
+
+    <div class="modal__done" data-lead-done hidden>
+      <span class="modal__done-icon"><Icon name="check" size={28} /></span>
+      <h2 class="h2">Спасибо!</h2>
+      <p class="lead">Заявка принята. Мы свяжемся с вами в рабочее время — {site.workHours}.</p>
+      <button type="button" class="btn" data-close>Закрыть <Icon name="arrow-right" /></button>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .modal { width: min(560px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 0; background: transparent; overflow: visible; }
+  .modal::backdrop { background: rgba(61,74,71,.72); backdrop-filter: blur(4px); }
+  .modal[open] { animation: modal-in .35s var(--ease); }
+  @keyframes modal-in { from { opacity: 0; transform: translateY(16px); } }
+  .modal__box { position: relative; overflow: auto; max-height: calc(100dvh - 24px); padding: clamp(28px, 5vw, 44px); background: var(--white); border: 1px solid var(--line); }
+  .modal__close { position: absolute; right: 12px; top: 12px; z-index: 2; display: grid; place-items: center; width: 40px; height: 40px; color: var(--ink); }
+  .modal__close:hover { color: var(--accent); }
+  .modal__form, .modal__done { position: relative; display: grid; gap: 18px; }
+  .modal__title { font-size: clamp(24px, 3vw, 32px); }
+  .modal__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  /* Сфера деятельности — те же плашки с галочкой, что в квизе на главной */
+  .modal__roles { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+  .modal__roles-q { padding: 0; margin-bottom: 10px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+  .modal__roles-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .modal__role { position: relative; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 9px; font-size: 13px; line-height: 1.3; color: var(--ink); cursor: pointer; transition: border-color .2s, background .2s; }
+  .modal__role:hover { border-color: var(--icon-border); }
+  .modal__role:has(input:checked) { border-color: var(--green-900); background: var(--bg-soft); }
+  .modal__roles.is-invalid .modal__role { border-color: #b3412f; }
+  .modal__role input { position: absolute; opacity: 0; pointer-events: none; }
+  .modal__role-box { display: grid; place-items: center; width: 21px; height: 18px; flex: none; border: 1px solid var(--brand-pastel); background: var(--white); color: transparent; transition: background .2s, color .2s, border-color .2s; }
+  .modal__role input:checked ~ .modal__role-box { background: var(--green-900); border-color: var(--green-900); color: var(--white); }
+  .modal__role input:focus-visible ~ .modal__role-box { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .modal__done { justify-items: start; }
+  .modal__done-icon { display: grid; place-items: center; width: 56px; height: 56px; background: var(--icon-bg); border: 1px solid var(--icon-border); color: var(--green-900); }
+  @media (max-width: 520px) { .modal__grid, .modal__roles-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { checkForm, initFormCheck, initPhoneMasks, resetConsent, submitLead } from '../scripts/leads';
+
+  const modal = document.querySelector<HTMLDialogElement>('[data-lead-modal]')!;
+  const form = modal.querySelector<HTMLFormElement>('[data-lead-form]')!;
+  const done = modal.querySelector<HTMLElement>('[data-lead-done]')!;
+  const title = modal.querySelector<HTMLElement>('[data-lead-title]')!;
+  const source = modal.querySelector<HTMLInputElement>('[data-lead-source]')!;
+  const error = modal.querySelector<HTMLElement>('[data-error]')!;
+  const roles = modal.querySelector<HTMLFieldSetElement>('[data-lead-roles]')!;
+
+  initPhoneMasks(document);
+  initFormCheck(form, error);
+
+  document.addEventListener('click', (e) => {
+    const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-lead]');
+    if (!trigger) return;
+    e.preventDefault();
+    title.textContent = trigger.dataset.lead || 'Запросить расчёт';
+    source.value = trigger.dataset.lead || '';
+    form.hidden = false; done.hidden = true; error.hidden = true;
+    resetConsent(form);
+    const role = trigger.dataset.leadRole;
+    roles.hidden = roles.disabled = role === undefined;
+    if (role) roles.querySelectorAll<HTMLInputElement>('input').forEach((i) => { i.checked = i.value === role; });
+    modal.showModal();
+    document.body.classList.add('no-scroll');
+  });
+
+  const close = () => modal.close();
+  modal.addEventListener('close', () => document.body.classList.remove('no-scroll'));
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal || (e.target as HTMLElement).closest('[data-close]')) close();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const problem = checkForm(form);
+    if (problem) { error.textContent = problem; error.hidden = false; return; }
+    error.hidden = true;
+    await submitLead('modal', form, Object.fromEntries(new FormData(form)));
+    form.reset();
+    form.hidden = true; done.hidden = false;
+  });
+</script>

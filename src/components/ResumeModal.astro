@@ -1,0 +1,167 @@
+---
+// Форма «Отправить резюме» (страница «Вакансии»). Открывается кнопкой с атрибутом data-resume="Заголовок окна",
+// например data-resume="Отклик: Инженер-конструктор" — заголовок уходит с заявкой в поле source.
+// Обязательны имя, телефон или e-mail и файл резюме (PDF / Word, до 10 МБ; можно перетащить в рамку); комментарий — по желанию.
+// Отправка пока не подключена — как и остальные заявки, см. src/scripts/leads.ts.
+import Icon from './Icon.astro';
+import Consent from './Consent.astro';
+import { site } from '../data/site';
+---
+<dialog class="rmodal" data-resume-modal aria-labelledby="resume-title">
+  <div class="rmodal__box">
+    <div class="pattern pattern--fade-right"></div>
+    <button type="button" class="rmodal__close" aria-label="Закрыть" data-close><Icon name="x" /></button>
+
+    <form class="rmodal__form" data-resume-form novalidate>
+      <p class="eyebrow">Работа в «Стекляника»</p>
+      <h2 class="h2 rmodal__title" id="resume-title" data-resume-title>Отправить резюме</h2>
+      <p class="lead">Оставьте контакты и прикрепите резюме — рассмотрим вашу кандидатуру и свяжемся с вами.</p>
+
+      <input type="hidden" name="source" data-resume-source />
+      <div class="rmodal__grid">
+        <div class="field"><label for="resume-name">Имя *</label><input id="resume-name" name="name" autocomplete="name" required /></div>
+        <div class="field"><label for="resume-contact">Телефон или e-mail *</label><input id="resume-contact" name="contact" autocomplete="email" required data-contact /></div>
+      </div>
+      <div class="field"><label for="resume-msg">Комментарий</label><textarea id="resume-msg" name="message" placeholder="Желаемая должность, опыт, удобное время для связи"></textarea></div>
+
+      <div class="field">
+        <span class="rmodal__label">Резюме *</span>
+        <label class="rmodal__drop" data-drop>
+          <input type="file" name="resume" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" required data-file />
+          <span class="rmodal__drop-icon"><Icon name="file" size={20} /></span>
+          <span class="rmodal__drop-text" data-file-empty><span><b>Прикрепите файл</b> или перетащите его сюда</span><small>PDF или Word, до 10 МБ</small></span>
+          <span class="rmodal__drop-text" data-file-name hidden></span>
+          <button type="button" class="rmodal__drop-x" aria-label="Убрать файл" data-file-clear hidden><Icon name="x" size={16} /></button>
+        </label>
+      </div>
+
+      <Consent doc="consent-candidates" />
+      <p class="form-error" data-error role="alert" hidden></p>
+      <button type="submit" class="btn btn--lg btn--block">Отправить резюме <Icon name="arrow-right" /></button>
+    </form>
+
+    <div class="rmodal__done" data-resume-done hidden>
+      <span class="rmodal__done-icon"><Icon name="check" size={28} /></span>
+      <h2 class="h2">Спасибо!</h2>
+      <p class="lead">Резюме получено. Мы свяжемся с вами в рабочее время — {site.workHours}.</p>
+      <button type="button" class="btn" data-close>Закрыть <Icon name="arrow-right" /></button>
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .rmodal { width: min(580px, calc(100% - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 0; background: transparent; overflow: visible; }
+  .rmodal::backdrop { background: rgba(61,74,71,.72); backdrop-filter: blur(4px); }
+  .rmodal[open] { animation: rmodal-in .35s var(--ease); }
+  @keyframes rmodal-in { from { opacity: 0; transform: translateY(16px); } }
+  .rmodal__box { position: relative; overflow: auto; max-height: calc(100dvh - 24px); padding: clamp(28px, 5vw, 44px); background: var(--white); border: 1px solid var(--line); border-radius: 9px; }
+  .rmodal__close { position: absolute; right: 12px; top: 12px; z-index: 2; display: grid; place-items: center; width: 40px; height: 40px; color: var(--ink); }
+  .rmodal__close:hover { color: var(--accent); }
+  .rmodal__form, .rmodal__done { position: relative; display: grid; gap: 18px; }
+  .rmodal__title { font-size: clamp(24px, 3vw, 32px); }
+  .rmodal__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .rmodal__label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+  /* поле файла: вся рамка кликабельна, сюда же можно перетащить файл */
+  .field .rmodal__drop { text-transform: none; letter-spacing: normal; } /* не наследовать стиль подписи .field label */
+  .rmodal__drop { position: relative; display: flex; align-items: center; gap: 14px; padding: 16px; border: 1px dashed var(--brand-pastel); border-radius: 9px; background: var(--bg-soft); color: var(--ink); cursor: pointer; transition: border-color .2s, background .2s; }
+  .rmodal__drop:hover, .rmodal__drop.is-over { border-color: var(--green-900); background: var(--icon-bg); }
+  .rmodal__drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .rmodal__drop.has-file { border-style: solid; border-color: var(--green-900); }
+  .rmodal__drop.is-invalid { border-style: solid; border-color: #b3412f; }
+  .rmodal__drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .rmodal__drop-icon { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 9px; background: var(--white); color: var(--green-900); }
+  .rmodal__drop-text { display: grid; gap: 2px; min-width: 0; font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+  .rmodal__drop-text small { font-size: 12px; color: var(--text-2); }
+  .rmodal__drop-x { display: grid; place-items: center; width: 32px; height: 32px; margin-left: auto; flex: none; border-radius: 9px; color: var(--ink); }
+  .rmodal__drop-x:hover { background: var(--white); }
+  .rmodal__done { justify-items: start; }
+  .rmodal__done-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 9px; background: var(--icon-bg); border: 1px solid var(--icon-border); color: var(--green-900); }
+  @media (max-width: 520px) { .rmodal__grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { checkForm, clearInvalid, formErrors, initFormCheck, markInvalid, resetConsent, submitLead } from '../scripts/leads';
+
+  const MAX_SIZE = 10 * 1024 * 1024;
+  const OK_EXT = /\.(pdf|docx?)$/i;
+
+  const modal = document.querySelector<HTMLDialogElement>('[data-resume-modal]')!;
+  const form = modal.querySelector<HTMLFormElement>('[data-resume-form]')!;
+  const done = modal.querySelector<HTMLElement>('[data-resume-done]')!;
+  const title = modal.querySelector<HTMLElement>('[data-resume-title]')!;
+  const source = modal.querySelector<HTMLInputElement>('[data-resume-source]')!;
+  const error = modal.querySelector<HTMLElement>('[data-error]')!;
+  const drop = modal.querySelector<HTMLElement>('[data-drop]')!;
+  const fileInput = modal.querySelector<HTMLInputElement>('[data-file]')!;
+  const fileEmpty = modal.querySelector<HTMLElement>('[data-file-empty]')!;
+  const fileName = modal.querySelector<HTMLElement>('[data-file-name]')!;
+  const fileClear = modal.querySelector<HTMLButtonElement>('[data-file-clear]')!;
+
+  const showError = (text: string) => { error.textContent = text; error.hidden = false; };
+
+  // Причина, по которой файл не принимается ('' — файл подходит)
+  const fileProblem = (f: File) =>
+    !OK_EXT.test(f.name) ? 'Файл неподходящего формата. Можно прикрепить только PDF или Word (.doc, .docx).'
+    : f.size > MAX_SIZE ? 'Размер файла слишком большой, загрузить не удалось. Можно прикрепить файл до 10 МБ.'
+    : f.size === 0 ? 'Файл пустой. Прикрепите другой файл.' : '';
+
+  // Имя файла и размер в рамке; неподходящий файл сразу сбрасываем с понятной ошибкой
+  const renderFile = () => {
+    const f = fileInput.files?.[0];
+    const problem = f ? fileProblem(f) : '';
+    if (problem) { fileInput.value = ''; markInvalid(fileInput); showError(problem); }
+    else if (f) {
+      clearInvalid(fileInput);
+      // файл подошёл: сообщение о нём больше не нужно, но могли остаться другие незаполненные поля
+      if (form.querySelector('.is-invalid')) showError(formErrors.required); else error.hidden = true;
+    }
+    const ok = fileInput.files?.[0];
+    drop.classList.toggle('has-file', !!ok);
+    fileEmpty.hidden = !!ok; fileName.hidden = fileClear.hidden = !ok;
+    if (ok) {
+      const name = document.createElement('b'); name.textContent = ok.name;
+      const size = document.createElement('small'); size.textContent = `${(ok.size / 1024 / 1024).toFixed(ok.size < 1024 * 1024 ? 2 : 1)} МБ`;
+      fileName.replaceChildren(name, size);
+    }
+  };
+  fileInput.addEventListener('change', renderFile);
+  fileClear.addEventListener('click', (e) => { e.preventDefault(); fileInput.value = ''; renderFile(); });
+  initFormCheck(form, error);
+  ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('is-over'); }));
+  ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, () => drop.classList.remove('is-over')));
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const files = (e as DragEvent).dataTransfer?.files;
+    if (!files?.length) return;
+    const dt = new DataTransfer(); dt.items.add(files[0]);
+    fileInput.files = dt.files; renderFile();
+  });
+
+  document.addEventListener('click', (e) => {
+    const trigger = (e.target as HTMLElement).closest<HTMLElement>('[data-resume]');
+    if (!trigger) return;
+    e.preventDefault();
+    title.textContent = trigger.dataset.resume || 'Отправить резюме';
+    source.value = trigger.dataset.resume || '';
+    form.hidden = false; done.hidden = true; error.hidden = true;
+    resetConsent(form);
+    renderFile();
+    modal.showModal();
+    document.body.classList.add('no-scroll');
+  });
+
+  modal.addEventListener('close', () => document.body.classList.remove('no-scroll'));
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal || (e.target as HTMLElement).closest('[data-close]')) modal.close();
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const problem = checkForm(form);
+    if (problem) { showError(problem); return; }
+    error.hidden = true;
+    await submitLead('resume', form, Object.fromEntries(new FormData(form)));
+    form.reset(); renderFile();
+    form.hidden = true; done.hidden = false;
+  });
+</script>

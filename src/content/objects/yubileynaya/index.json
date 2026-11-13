@@ -1,0 +1,13 @@
+{
+  "title": "Улица Юбилейная",
+  "type": "private",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление Alutech (окна ALT W72 HI+, витражи ALT F50).",
+  "photos": [
+    "/src/content/objects/yubileynaya/01.jpg",
+    "/src/content/objects/yubileynaya/02.jpg",
+    "/src/content/objects/yubileynaya/03.jpg"
+  ],
+  "published": true,
+  "order": 70
+}

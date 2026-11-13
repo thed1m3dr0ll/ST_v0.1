@@ -1,0 +1,51 @@
+---
+// «Услуги» — по макету «Страница услуг».
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Steps from '../components/home/Steps.astro';
+import CtaBand from '../components/CtaBand.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import { services } from '../data/services';
+import heroWake from '../assets/services/hero-wakepark.jpg';
+import heroMid from '../assets/services/hero-aleksandrovskaya.jpg';
+import heroDoor from '../assets/services/hero-door.jpg';
+---
+<Base title="Услуги" description="Проектирование, производство и монтаж светопрозрачных конструкций: фасады, панорамное остекление, алюминиевые системы, зимние сады и стеклянные ограждения.">
+  <PageHero
+    title="Услуги"
+    text="Комплексные решения для частных и коммерческих объектов любой сложности."
+    collage={[
+      { image: heroWake, position: '48% center' },
+      { image: heroMid, position: '45% center' },
+      { image: heroDoor, position: 'center' },
+    ]}
+    crumbs={[{ label: 'Услуги' }]}
+    aside={'Больше,\nчем остекление.'}
+    tall
+    down="#services"
+  />
+
+  <section class="section services" id="services">
+    <div class="pattern pattern--fade-right"></div>
+    <div class="container">
+      <ul class="services__grid">
+        {services.map((s) => (
+          <li>
+            <ServiceCard title={s.title} img={s.img} href={`/services/${s.slug}/`} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Нужна консультация по вашему проекту?" text="Оставьте заявку — мы свяжемся с вами и подберём решение." />
+  <Steps />
+</Base>
+
+<style>
+  /* Фон и сетка — как на странице «Объекты»: 3 колонки той же ширины (сама карточка — components/ServiceCard.astro) */
+  .services { background: linear-gradient(180deg, #f3f7f6, var(--bg)); }
+  .services__grid { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 1024px) { .services__grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .services__grid { grid-template-columns: 1fr; } }
+</style>

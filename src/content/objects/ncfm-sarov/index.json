@@ -1,0 +1,14 @@
+{
+  "title": "НЦФМ Саров",
+  "type": "commercial",
+  "location": "г. Саров",
+  "works": "Фасадная система Alutech ALT F50, створки Alutech ALT W72 HI+.",
+  "photos": [
+    "/src/content/objects/ncfm-sarov/01.jpg",
+    "/src/content/objects/ncfm-sarov/02.jpg",
+    "/src/content/objects/ncfm-sarov/03.jpg",
+    "/src/content/objects/ncfm-sarov/04.jpg"
+  ],
+  "published": true,
+  "order": 140
+}

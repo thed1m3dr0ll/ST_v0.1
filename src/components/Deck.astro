@@ -1,0 +1,141 @@
+---
+// «Колода» фото (страница «Владельцам бизнеса», экран «Разные проекты — уникальные решения»).
+// Вертикальные карточки в одну линию на всю ширину экрана, слегка повёрнуты; каждая следующая чуть спрятана
+// под предыдущую. Мышь по колоде слева направо — вперёд по очереди «выпрыгивает» фото под курсором (целиком, без поворота),
+// остальные остаются сзади и раздвигаются; на телефоне то же — касанием или проведением пальцем.
+// При появлении экрана колода «раздаётся» из центра. Фото — node tools/prep-business.cjs (src/assets/business/deck),
+// для «Частным лицам» — node tools/prep-private.cjs (src/assets/private/deck). Под колоду можно вложить свои блоки (slot).
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import SectionHead from './SectionHead.astro';
+
+interface Props {
+  id?: string;
+  title: string;
+  text?: string; // пара строк под колодой
+  items: { img: ImageMetadata; alt: string }[];
+}
+const { id, title, text, items } = Astro.props;
+// наклон карточек в покое (градусы) — по кругу
+const tilt = [-5, 3, -2.5, 4, -3.5, 2];
+---
+<section class="section section--dark deck" id={id}>
+  <div class="pattern pattern--fade-right"></div>
+  <div class="container deck__head">
+    <SectionHead title={title} />
+  </div>
+  <div class="deck__stage">
+    <div class="deck__track reveal" style={`--n:${items.length}`} data-deck tabindex="0" aria-label={`${title}: ${items.length} фото, листайте`}>
+      {items.map((p, i) => (
+        <figure class="deck__card" style={`--i:${i};--c:${i - (items.length - 1) / 2};--r:${tilt[i % tilt.length]}deg;z-index:${items.length - i}`} data-deck-card>
+          <Image src={p.img} alt={p.alt} widths={[360, 540, 720]} sizes="(max-width: 640px) 200px, 420px" class="deck__img" />
+        </figure>
+      ))}
+    </div>
+  </div>
+  {text && <div class="container"><p class="deck__text reveal">{text}</p></div>}
+  {/* что-то ещё под колодой (например, блоки-стекло на «Частным лицам») */}
+  {Astro.slots.has('default') && <div class="container deck__after"><slot /></div>}
+</section>
+
+<style>
+  .deck .container { position: relative; }
+  .deck__head { margin-bottom: clamp(28px, 3vw, 48px); }
+
+  /* Сцена — на всю ширину окна (а не контейнера), чтобы фото заняли экран без пустых полей.
+     --k — какая доля карточки спрятана под предыдущей, --room — запас по краям, чтобы раздвинутые карточки не обрезались */
+  .deck__stage { --k: .18; --room: 40px; position: relative; container-type: inline-size; padding-inline: var(--gutter); }
+  .deck__track {
+    /* ширина карточки: вся строка / (n − (n−1)·k), но на низком окне не выше, чем помещается по высоте */
+    --cw: min(calc((100cqi - 2 * var(--room)) / (var(--n) - (var(--n) - 1) * var(--k))), max(285px, (100svh - 300px) * .75));
+    /* нахлёст — чтобы колода дотянулась до краёв строки; не меньше --k-min от ширины карточки */
+    --ov: max(calc((var(--n) * var(--cw) - (100cqi - 2 * var(--room))) / (var(--n) - 1)), calc(var(--cw) * .12));
+    display: flex; justify-content: center; width: max-content; margin-inline: auto;
+    padding-block: calc(var(--cw) * .14) calc(var(--cw) * .1); /* место сверху и снизу для «выпрыгнувшей» карточки */
+    cursor: pointer; touch-action: pan-y; outline: none;
+  }
+  /* текст под колодой — по центру, в пару строк */
+  .deck__text { position: relative; max-width: 760px; margin: clamp(20px, 2vw, 32px) auto 0; text-align: center; font-size: clamp(15px, 1.05vw, 18px); line-height: 1.6; color: rgba(251,253,255,.85); }
+  .deck__after { margin-top: clamp(20px, 2vw, 32px); }
+  .deck__track:focus-visible { outline: 2px solid var(--brand-pastel); outline-offset: 6px; border-radius: 9px; }
+
+  .deck__card {
+    --tx: 0px; --ty: 0px; --s: 1; --dim: 0;
+    position: relative; flex: none; width: var(--cw); aspect-ratio: 3 / 4; margin: 0;
+    border-radius: 9px; overflow: hidden; background: var(--green-800);
+    box-shadow: 0 18px 40px -16px rgba(0,0,0,.6);
+    transform: translate(var(--tx), var(--ty)) rotate(var(--r)) scale(var(--s));
+    transition: transform .55s cubic-bezier(.34, 1.4, .64, 1), box-shadow .45s var(--ease);
+  }
+  .deck__card + .deck__card { margin-left: calc(var(--ov) * -1); }
+  .deck__img { width: 100%; height: 100%; object-fit: cover; filter: brightness(calc(1 - var(--dim) * .1)); transition: filter .45s var(--ease); }
+  /* выбранная карточка: прямо, крупнее, приподнята */
+  .deck__card.is-front { --r: 0deg; box-shadow: 0 30px 60px -18px rgba(0,0,0,.75); }
+
+  /* Пока экран не показался — карточки собраны в стопку в центре; при появлении раздаются веером */
+  .deck__track.reveal { opacity: 0; transform: none; }
+  .deck__track.reveal.is-visible { opacity: 1; }
+  .deck__track:not(.is-visible) .deck__card { transform: translateX(calc(var(--c) * (var(--ov) - var(--cw)))) rotate(0deg); }
+  .deck__track.reveal.is-visible:not(.is-ready) .deck__card { transition: transform 1s var(--ease) calc(.15s + var(--i) * 40ms); }
+
+  /* Планшет: карточки уже, нахлёст больше */
+  @media (max-width: 1024px) { .deck__stage { --k: .36; --room: 24px; } .deck__track { --cw: calc((100cqi - 2 * var(--room)) / (var(--n) - (var(--n) - 1) * var(--k))); } }
+  /* Телефон: колода во всю ширину экрана, у каждой карточки видна полоска; выбранная заметно крупнее */
+  @media (max-width: 640px) {
+    .deck__stage { --k: .62; --room: 8px; }
+    .deck__track { padding-block: calc(var(--cw) * .3) calc(var(--cw) * .22); }
+  }
+  @media (prefers-reduced-motion: reduce) { .deck__card { transition: none !important; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-deck]').forEach((track) => {
+    const cards = [...track.querySelectorAll<HTMLElement>('[data-deck-card]')];
+    const n = cards.length;
+    let active = -1;
+
+    // после «раздачи» убираем задержки появления — дальше карточки реагируют сразу
+    new MutationObserver((_, mo) => {
+      if (!track.classList.contains('is-visible')) return;
+      mo.disconnect();
+      setTimeout(() => track.classList.add('is-ready'), 1000 + n * 40 + 150);
+    }).observe(track, { attributes: true, attributeFilter: ['class'] });
+
+    const show = (a: number) => {
+      active = a;
+      const phone = matchMedia('(max-width: 640px)').matches;
+      const cw = cards[0].offsetWidth;
+      cards.forEach((c, j) => {
+        const front = j === a;
+        const d = a < 0 ? 0 : Math.abs(j - a);
+        c.classList.toggle('is-front', front);
+        // соседи раздвигаются от выбранной, чтобы она была видна целиком
+        const tx = a < 0 || front ? 0 : Math.sign(j - a) * cw * .1;
+        c.style.setProperty('--tx', `${tx}px`);
+        c.style.setProperty('--ty', front ? `${-cw * (phone ? .08 : .06)}px` : '0px');
+        c.style.setProperty('--s', front ? (phone ? '1.45' : '1.12') : '1');
+        c.style.setProperty('--dim', String(Math.min(d, 3)));
+        c.style.zIndex = String(front ? 100 : a < 0 ? n - j : n - d);
+      });
+    };
+
+    // какая карточка под пальцем/курсором: колода делится по ширине на n равных полос
+    const at = (x: number) => {
+      const r = track.getBoundingClientRect();
+      return Math.min(n - 1, Math.max(0, Math.floor(((x - r.left) / r.width) * n)));
+    };
+    track.addEventListener('pointermove', (e) => {
+      if (e.pointerType === 'mouse' || e.buttons) { const i = at(e.clientX); if (i !== active) show(i); }
+    });
+    track.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') show(at(e.clientX)); });
+    track.addEventListener('click', (e) => show(at(e.clientX)));
+    track.addEventListener('pointerleave', (e) => { if (e.pointerType === 'mouse') show(-1); });
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); show(active < 0 ? 0 : (active + 1) % n); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); show(active <= 0 ? n - 1 : active - 1); }
+      if (e.key === 'Escape') show(-1);
+    });
+    track.addEventListener('blur', () => show(-1));
+    addEventListener('resize', () => { if (active >= 0) show(active); });
+  });
+</script>

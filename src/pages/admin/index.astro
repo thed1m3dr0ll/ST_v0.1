@@ -1,0 +1,44 @@
+---
+// Админка сайта (Decap CMS) — /admin/. Отдельная пустая страница без общего шаблона сайта:
+// всё рисует сама админка. Её файлы — public/admin/decap/ (обновить: npm run cms:update), настройки — public/admin/config.yml.
+// public/admin/rich-text.js — свой редактор текста для событий (жирный, курсив, подчёркивание, цвет).
+// Инструкции: «АДМИНКА — как пользоваться.md» (для админа) и ДЛЯ-РАЗРАБОТЧИКА.md (для программиста).
+---
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Админка — Стекляника</title>
+  <link rel="icon" href="/favicon.png" />
+  <style>
+    /* многострочные поля (обязанности, требования…) — пустые небольшие, дальше растут по мере набора текста */
+    textarea { min-height: 52px !important; }
+  </style>
+  <style is:global>
+    /* is:global — разметку редактора рисует сама админка, без is:global Astro привязал бы стили к этой странице */
+    /* Редактор текста событий (rich-text.js): текст в нём — шрифтом и цветами сайта, как он будет выглядеть на странице */
+    @font-face { font-family: 'Cera Pro'; src: url('/fonts/CeraPro-Regular.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Cera Pro'; src: url('/fonts/CeraPro-Bold.woff2') format('woff2'); font-weight: 700; }
+    .rt__bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
+    .rt__btn { width: 36px; height: 36px; border: 1px solid #dfe5eb; border-radius: 9px; background: #fff; color: #3d4a47; font: 16px/1 'Cera Pro', sans-serif; cursor: pointer; }
+    .rt__btn:hover { border-color: #99bab8; }
+    .rt__btn.is-on { background: #3d4a47; border-color: #3d4a47; color: #fbfdff; }
+    .rt__btn--b { font-weight: 700; }
+    .rt__btn--i { font-style: italic; }
+    .rt__btn--u { text-decoration: underline; }
+    .rt__sep { width: 1px; height: 24px; margin: 0 6px; background: #dfe5eb; }
+    .rt__label { font-size: 13px; color: #798291; }
+    .rt__color { width: 26px; height: 26px; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #dfe5eb; cursor: pointer; }
+    .rt__color:hover { box-shadow: 0 0 0 2px #99bab8; }
+    .rt__area { min-height: 220px; max-height: 70vh; overflow-y: auto; font-family: 'Cera Pro', sans-serif !important; font-size: 16px; line-height: 1.6; color: #708a87; }
+    .rt__area:focus { outline: none; }
+    .rt__area p { margin: 0 0 .8em; }
+  </style>
+</head>
+<body>
+  <script is:inline src="/admin/decap/decap-cms.js"></script>
+  <script is:inline src="/admin/rich-text.js"></script>
+</body>
+</html>

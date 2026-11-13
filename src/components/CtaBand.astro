@@ -1,0 +1,69 @@
+---
+// Полоса-призыв с паттерном и кнопкой (низ внутренних страниц).
+// light — светлая узкая полоса (пастельный фон): надпись и кнопка «Зелёный мох» рядом слева, справа — фото объекта (image),
+//         растворяется к тексту; высоту полосы фото не меняет. Ставим между тёмными экранами, чтобы они не сливались.
+// С описанием (text) светлая полоса выше: кнопка под текстом, фото занимает правую половину (на телефоне — сверху).
+// leadRole — форма заявки откроется с вопросом «Ваша сфера деятельности?» (см. LeadModal).
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from './Icon.astro';
+interface Props {
+  title: string; text?: string; button?: string; href?: string; light?: boolean; leadRole?: boolean;
+  image?: ImageMetadata;  // только для light
+  position?: string;      // object-position фото — какую часть кадра показать в полосе
+}
+const { title, text, button = 'Оставить заявку', href, light = false, leadRole = false, image, position = 'center' } = Astro.props;
+const btnClass = light ? 'btn btn--lg cta__btn' : 'btn btn--glass';
+// В узкой полосе короткие слова («о», «со») не оставляем в конце строки — привязываем к следующему
+const heading = light ? title.replace(/(^|\s)([а-яё]{1,2})\s/gi, '$1$2 ') : title;
+---
+<section class:list={['cta', { 'cta--light': light, 'cta--photo': light && image }]}>
+  <div class:list={['pattern', { 'pattern--light': !light }]}></div>
+  {light && image && <Image src={image} alt="" class="cta__photo" widths={[400, 800, 1280]} sizes={text ? '(max-width: 640px) 100vw, 50vw' : '(max-width: 640px) 40vw, 42vw'} style={`object-position:${position}`} />}
+  <div class="container cta__inner">
+    <div class="cta__text-wrap">
+      <h2 class="cta__title">{heading}</h2>
+      {text && <p class="cta__text">{text}</p>}
+    </div>
+    {href
+      ? <a href={href} class={btnClass}>{button} <Icon name="arrow-right" /></a>
+      : <button type="button" class={btnClass} data-lead={title} data-lead-role={leadRole ? '' : undefined}>{button} <Icon name="arrow-right" /></button>}
+  </div>
+</section>
+
+<style>
+  .cta { position: relative; overflow: hidden; background: linear-gradient(100deg, var(--green-900), var(--green-800)); color: #fff; }
+  .cta .pattern { opacity: .06; } /* паттерн на всю ширину полосы */
+  .cta__inner { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 24px 48px; padding-block: 48px; flex-wrap: wrap; }
+  .cta__title { font-weight: 700; font-size: clamp(20px, 1.6vw, 28px); line-height: 1.25; text-transform: uppercase; }
+  .cta__text { max-width: 640px; margin-top: 8px; font-size: 14px; line-height: 1.6; color: rgba(255,255,255,.75); } /* длинное описание не тянется на всю ширину */
+  @media (max-width: 640px) { .cta .btn { width: 100%; justify-content: center; } }
+
+  /* Светлая узкая полоса: надпись и кнопка рядом, слева */
+  .cta--light { background: linear-gradient(100deg, rgba(153,186,184,.3), rgba(153,186,184,.14)), var(--white); color: var(--ink); }
+  .cta--light .cta__inner { justify-content: flex-start; gap: 16px 40px; padding-block: 24px; }
+  .cta--light .cta__text { color: var(--text); }
+  .cta--light .cta__btn { justify-content: center; gap: 10px; padding-inline: 22px; }
+  /* светлая полоса с описанием (text): кнопка — прямо под текстом, полоса выше, текст не заходит на фото */
+  .cta--light:has(.cta__text) .cta__inner { flex-direction: column; align-items: flex-start; gap: 24px; padding-block: clamp(44px, 4.4vw, 72px); }
+  .cta--light:has(.cta__text) .cta__text-wrap { max-width: min(640px, 52%); }
+  .cta--light:has(.cta__text) .cta__title { font-size: clamp(24px, 2vw, 36px); }
+  .cta--light .cta__text { margin-top: 14px; font-size: clamp(14px, .95vw, 16px); color: var(--ink); opacity: .85; }
+  .cta--light:has(.cta__text) .cta__photo { width: min(50%, 860px); }
+  /* Фото — только правая часть полосы, растворяется к тексту */
+  .cta__photo {
+    position: absolute; top: 0; right: 0; bottom: 0; width: min(42%, 720px); height: 100%; object-fit: cover;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 38%); mask-image: linear-gradient(90deg, transparent 0%, #000 38%);
+  }
+  @media (max-width: 640px) {
+    .cta--light .cta__inner { gap: 14px; padding-block: 22px; }
+    .cta--light .btn { width: auto; }
+    .cta--photo .cta__inner > * { max-width: 62%; }
+    .cta__photo { width: 44%; }
+    /* с описанием на телефоне: фото сверху во всю ширину, текст и кнопка — под ним */
+    .cta--light:has(.cta__text) { display: flex; flex-direction: column; }
+    .cta--light:has(.cta__text) .cta__photo { position: relative; width: 100%; height: 200px; -webkit-mask-image: linear-gradient(0deg, transparent 0%, #000 45%); mask-image: linear-gradient(0deg, transparent 0%, #000 45%); }
+    .cta--light:has(.cta__text) .cta__inner { padding-block: 4px 32px; }
+    .cta--light:has(.cta__text) .cta__inner > *, .cta--light:has(.cta__text) .cta__text-wrap { max-width: none; }
+  }
+</style>

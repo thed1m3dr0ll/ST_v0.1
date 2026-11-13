@@ -1,0 +1,12 @@
+{
+  "title": "Roza Rossa",
+  "type": "special",
+  "location": "г. Москва",
+  "works": "Самонесущие остеклённые выходы на кровлю из апартаментов с применением стальной оцинкованной системы остекления RAICO THERM+ FS-I и дверей RAICO FRAME+ 75DI. Все стеклопакеты с электрообогревом.",
+  "photos": [
+    "/src/content/objects/roza-rossa/01.jpg",
+    "/src/content/objects/roza-rossa/02.jpg"
+  ],
+  "published": true,
+  "order": 180
+}

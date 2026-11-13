@@ -1,0 +1,15 @@
+{
+  "title": "Мкр-н Александровская слобода",
+  "type": "private",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление Alutech (окна ALT W72 HI+, витражи ALT F50), RAICO (подъёмно-раздвижные двери SLIFT).",
+  "photos": [
+    "/src/content/objects/aleksandrovskaya-sloboda/01.jpg",
+    "/src/content/objects/aleksandrovskaya-sloboda/02.jpg",
+    "/src/content/objects/aleksandrovskaya-sloboda/03.jpg",
+    "/src/content/objects/aleksandrovskaya-sloboda/04.jpg",
+    "/src/content/objects/aleksandrovskaya-sloboda/05.jpg"
+  ],
+  "published": true,
+  "order": 80
+}

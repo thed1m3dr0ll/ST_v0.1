@@ -1,0 +1,346 @@
+# Настройки админки сайта «Стекляника» (Decap CMS — https://decapcms.org/docs/).
+# Админка открывается по адресу /admin/. Она редактирует файлы в src/content/, сайт собирается из них.
+#
+# Локально (на компьютере): «Запустить сайт.bat» запускает сайт и маленький сервер админки (npm run cms),
+# local_backend ниже включает работу без логина — изменения сразу пишутся в файлы проекта.
+#
+# На хостинге: разработчик заменяет блок backend на свой (GitHub / GitLab / Gitea и вход для админа).
+# Подробно — в файле ДЛЯ-РАЗРАБОТЧИКА.md в папке site.
+
+locale: ru
+local_backend: true
+
+backend:
+  # TODO (разработчику): указать репозиторий и способ входа, см. ДЛЯ-РАЗРАБОТЧИКА.md
+  name: github
+  repo: OWNER/REPO
+  branch: main
+  commit_messages:
+    create: 'Админка: добавлено «{{slug}}» ({{collection}})'
+    update: 'Админка: изменено «{{slug}}» ({{collection}})'
+    delete: 'Админка: удалено «{{slug}}» ({{collection}})'
+    uploadMedia: 'Админка: загружен файл {{path}}'
+    deleteMedia: 'Админка: удалён файл {{path}}'
+
+publish_mode: simple
+show_preview_links: false
+logo_url: /favicon.png
+
+# Общая папка для файлов, если у поля не указана своя (пути — от корня проекта, т. е. от папки site)
+media_folder: src/assets/uploads
+public_folder: /src/assets/uploads
+
+collections:
+  # ───────────────────────────── Вакансии ─────────────────────────────
+  - name: vacancies
+    label: Вакансии
+    label_singular: Добавить вакансию
+    description: >-
+      Вакансии на странице «Вакансии». Чтобы убрать неактуальную вакансию, выключите переключатель «Показывать на сайте»
+      (её можно будет вернуть) или удалите её совсем. Порядок на сайте задаёт поле «Порядок в списке».
+    folder: src/content/vacancies
+    format: json
+    extension: json
+    create: true
+    delete: true
+    identifier_field: title
+    slug: '{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}'
+    summary: "{{title}} — {{place}} · {{employment}}{{published | ternary('', '  [скрыта]')}}"
+    sortable_fields: ['order', 'title']
+    editor:
+      preview: false
+    fields:
+      - label: Название должности
+        name: title
+        widget: string
+        hint: 'Например: Инженер-конструктор. Из названия сам получается адрес страницы вакансии.'
+      - label: Показывать на сайте
+        name: published
+        widget: boolean
+        default: true
+        hint: Выключите, чтобы спрятать вакансию с сайта, не удаляя её.
+      - label: Место работы
+        name: place
+        widget: select
+        options: ['Офис', 'Производство']
+        default: Офис
+      - label: Тип занятости
+        name: employment
+        widget: select
+        options:
+          - { label: 'Полная занятость', value: 'полная занятость' }
+          - { label: 'Частичная занятость', value: 'частичная занятость' }
+          - { label: 'Проектная работа', value: 'проектная работа' }
+          - { label: 'Стажировка', value: 'стажировка' }
+        default: полная занятость
+      - label: Опыт работы
+        name: experience
+        widget: select
+        required: false
+        options: ['Без опыта', 'До 1 года', '1–3 года', '3–6 лет', 'Более 6 лет']
+        hint: Можно не выбирать — тогда на странице вакансии этой строки не будет.
+      - label: График работы
+        name: schedule
+        widget: string
+        required: false
+        hint: 'Например: 5/2, с 8:00 до 17:00'
+      - label: Оформление
+        name: contract
+        widget: string
+        required: false
+        hint: 'Например: Трудовой договор или договор ГПХ'
+      - label: Формат работы
+        name: format
+        widget: string
+        required: false
+        hint: 'Например: В офисе / На производстве / В офисе, возможна стажировка'
+      - label: Обязанности
+        name: duties
+        widget: text
+        required: false
+        hint: Каждый пункт — с новой строки (Enter). Можно оставить пустым — тогда блока на странице не будет.
+      - label: Требования
+        name: requirements
+        widget: text
+        required: false
+        hint: Каждый пункт — с новой строки (Enter). Можно оставить пустым — тогда блока на странице не будет.
+      - label: Условия
+        name: conditions
+        widget: text
+        required: false
+        hint: Каждый пункт — с новой строки (Enter). Можно оставить пустым — тогда блока на странице не будет.
+      - label: Ссылка на вакансию на hh.ru
+        name: hh
+        widget: string
+        required: false
+        pattern: ['^\s*(https?://)?[^\s/]+\.[^\s]+\s*$', 'Вставьте ссылку целиком, например https://hh.ru/vacancy/138598802']
+        hint: >-
+          Сюда кнопка «Откликнуться» на странице вакансии. Хвост ссылки вида ?from=… сайт уберёт сам.
+          Если поле пустое — кнопка откроет форму «Отправить резюме» на сайте.
+      - label: Порядок в списке
+        name: order
+        widget: number
+        value_type: int
+        default: 100
+        hint: Чем меньше число, тем выше вакансия в списке (удобно ставить 10, 20, 30…).
+
+  # ───────────────────────────── События ─────────────────────────────
+  # Поле «Текст» — свой редактор rich-text (public/admin/rich-text.js): жирный, курсив, подчёркивание, цвет.
+  # Хранится как HTML; на сайте он ещё раз чистится (src/data/events.ts), шрифт везде Cera Pro.
+  - name: events
+    label: События
+    label_singular: Добавить событие
+    description: >-
+      Новости компании на странице «О нас → События». Новые события показываются первыми (посетитель может
+      переключить на «Сначала старые»). Чтобы убрать событие, выключите «Показывать на сайте» или удалите его.
+    folder: src/content/events
+    media_folder: /src/assets/events
+    public_folder: /src/assets/events
+    format: json
+    extension: json
+    create: true
+    delete: true
+    identifier_field: title
+    slug: '{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}'
+    summary: "{{day | date('DD.MM.YYYY')}} — {{title}}{{published | ternary('', '  [скрыто]')}}"
+    sortable_fields: ['day', 'title']
+    editor:
+      preview: false
+    fields:
+      - label: Заголовок
+        name: title
+        widget: string
+      # поле не называть date: из него Decap берёт {{year}}{{month}}{{day}} для имени файла,
+      # и два события за один день получали бы одно имя
+      - label: Дата
+        name: day
+        widget: datetime
+        format: 'YYYY-MM-DD'
+        date_format: 'DD.MM.YYYY'
+        time_format: false
+        default: '{{now}}'
+        hint: По дате события стоят на странице (новые — первыми). Подставляется сегодняшняя, можно поменять.
+      - label: Показывать на сайте
+        name: published
+        widget: boolean
+        default: true
+        hint: Выключите, чтобы спрятать событие с сайта, не удаляя его.
+      - label: Фото
+        name: photo
+        widget: image
+        required: false
+        choose_url: false
+        hint: Необязательно. На карточке фото показывается уменьшенным, в открытом событии — целиком.
+      - label: Текст
+        name: body
+        widget: rich-text
+        hint: >-
+          Выделите слова и нажмите Ж (жирный), К (курсив), Ч (подчёркнутый) или кружок цвета.
+          Новый абзац — Enter. Текст, вставленный из Word или с сайтов, вставляется без чужого оформления.
+
+  # ───────────────────────────── Объекты ─────────────────────────────
+  - name: objects
+    label: Объекты
+    label_singular: Добавить объект
+    description: >-
+      Объекты на странице «Объекты» (карточки и всплывающее окно с фото). Первое фото в списке — обложка карточки.
+      Фото лучше загружать до 20 МБ — сайт сам уменьшит их до нужного размера.
+    folder: src/content/objects
+    path: '{{slug}}/index'
+    # фото лежат в папке объекта рядом с index.json
+    media_folder: ''
+    public_folder: '/src/content/objects/{{dirname}}'
+    format: json
+    extension: json
+    create: true
+    delete: true
+    identifier_field: title
+    slug: '{{year}}{{month}}{{day}}-{{hour}}{{minute}}{{second}}'
+    summary: "{{title}} — {{location}}{{published | ternary('', '  [скрыт]')}}"
+    sortable_fields: ['order', 'title']
+    editor:
+      preview: false
+    fields:
+      - label: Название объекта
+        name: title
+        widget: string
+        hint: 'Например: Ресторан Escape'
+      - label: Показывать на сайте
+        name: published
+        widget: boolean
+        default: true
+        hint: Выключите, чтобы спрятать объект с сайта, не удаляя его.
+      - label: Тип объекта
+        name: type
+        widget: select
+        options:
+          - { label: 'Жилой комплекс', value: 'residential' }
+          - { label: 'Частный дом', value: 'private' }
+          - { label: 'Коммерческий объект', value: 'commercial' }
+          - { label: 'Специальное решение', value: 'special' }
+        hint: По типу работает фильтр на странице «Объекты».
+      - label: Локация
+        name: location
+        widget: string
+        default: г. Нижний Новгород
+      - label: Выполненные работы
+        name: works
+        widget: text
+        required: false
+        hint: Каждый пункт — с новой строки (Enter), на сайте это отдельные абзацы. Можно оставить пустым — строки не будет.
+      - label: Фотографии
+        name: photos
+        widget: list
+        label_singular: фото
+        collapsed: false
+        min: 1
+        field: { label: Фото, name: photo, widget: image, choose_url: false }
+        hint: Первое фото — обложка карточки. Порядок можно менять, перетаскивая фото за край.
+      - label: Порядок на странице
+        name: order
+        widget: number
+        value_type: int
+        default: 1000
+        hint: Чем меньше число, тем раньше объект на странице (сейчас у объектов 10, 20, 30… 180).
+
+  # ───────────────────────────── Документы ─────────────────────────────
+  # Юридические документы: каждый — отдельная страница сайта (/privacy/, /cookies/, /consent/, /consent-candidates/).
+  # Файлы — src/content/docs/*.md (Markdown), на сайте их показывает components/LegalDoc.astro.
+  - name: docs
+    label: Документы
+    description: >-
+      Политики и согласия — у каждого своя страница на сайте. Ссылки на них стоят в подвале, у галочек в формах
+      и в уведомлении о cookie. Поменяли текст — поменяйте и дату редакции.
+    editor:
+      preview: false
+    files:
+      - name: privacy
+        label: Политика обработки персональных данных
+        file: src/content/docs/privacy.md
+        fields: &docFields
+          - { label: Заголовок, name: title, widget: string }
+          - label: Строка под заголовком
+            name: subtitle
+            widget: string
+            required: false
+            hint: 'Например: пользователей сайта https://steklyanika.ru/ — можно оставить пустой.'
+          - label: Редакция
+            name: edition
+            widget: string
+            required: false
+            hint: >-
+              Например: Редакция от 30 октября 2026 года. У согласий эта строка уходит вместе с заявкой —
+              видно, какую редакцию принял человек.
+          - label: Текст документа
+            name: body
+            widget: markdown
+            modes: [rich_text]
+            editor_components: []
+            buttons: [bold, italic, link, heading-two, heading-three, bulleted-list, numbered-list]
+            hint: >-
+              Разделы («1. Общие положения») — кнопка «Заголовок 2», подразделы («3.1. …») — «Заголовок 3».
+              Адреса сайтов и почты на сайте сами становятся ссылками.
+      - { name: cookies, label: 'Политика использования файлов cookie', file: src/content/docs/cookies.md, fields: *docFields }
+      - { name: consent, label: 'Согласие на обработку персональных данных', file: src/content/docs/consent.md, fields: *docFields }
+      - { name: consent-candidates, label: 'Согласие соискателя', file: src/content/docs/consent-candidates.md, fields: *docFields }
+
+  # ───────────────────────────── Настройки сайта ─────────────────────────────
+  - name: settings
+    label: Настройки сайта
+    editor:
+      preview: false
+    files:
+      - name: contacts
+        label: Контакты
+        file: src/content/contacts.json
+        description: Меняются сразу везде — в шапке, подвале, на странице «Контакты», в формах.
+        fields:
+          - { label: Телефон, name: phone, widget: string, hint: 'Основной (отдел продаж) — в шапке, подвале и в блоке «Сотрудничество». В том виде, как показывать на сайте: +7 (939) 446-85-85' }
+          - { label: Электронная почта, name: email, widget: string, hint: 'Основная (отдел продаж) — в подвале и в блоке «Сотрудничество»' }
+          - { label: Карьера — телефон, name: careerPhone, widget: string, required: false, hint: 'Блок «Карьера» в «Свяжитесь с нами» (главная и «Контакты»)' }
+          - { label: Карьера — почта, name: careerEmail, widget: string, required: false }
+          - { label: Общие вопросы — телефон, name: infoPhone, widget: string, required: false, hint: 'Блок «Общие вопросы» (секретарь)' }
+          - { label: Общие вопросы — почта, name: infoEmail, widget: string, required: false }
+          - { label: Адрес офиса, name: address, widget: string, hint: 'Показывается в контактах и в блоке с кнопкой «Построить маршрут»' }
+          - { label: Рабочие дни (коротко), name: daysShort, widget: string, hint: 'Для шапки: Пн–Пт' }
+          - { label: Рабочие дни (полностью), name: daysFull, widget: string, hint: 'Для страницы «Контакты»: Понедельник–пятница' }
+          - { label: Часы работы, name: hours, widget: string, hint: 'с 08:00 до 17:00' }
+          - { label: Ссылка на ВКонтакте, name: vk, widget: string, hint: 'Например: https://vk.ru/steklyanika' }
+          - { label: Страница компании на hh.ru, name: hh, widget: string, required: false, hint: 'Страница работодателя, не вакансии: https://hh.ru/employer/4706952. Пусто — ссылка не показывается' }
+          - { label: Страница компании на DreamJob, name: dreamjob, widget: string, required: false, hint: 'https://dreamjob.ru/employers/589988. Пусто — ссылка не показывается' }
+          - label: Карточка организации в Яндекс Картах
+            name: mapOrg
+            widget: string
+            required: false
+            hint: >-
+              Сюда ведут адрес и кнопка «Построить маршрут». Откройте организацию в Яндекс Картах и скопируйте адрес страницы:
+              https://yandex.ru/maps/org/steklyanika/7548726127/
+          - label: Координаты офиса (сейчас не используются)
+            name: mapCoords
+            widget: string
+            required: false
+            hint: Встроенной карты на сайте сейчас нет. Значение хранится на случай, если карту вернут.
+
+      - name: certificates
+        label: Сертификаты
+        file: src/content/certificates.json
+        description: >-
+          Карусель сертификатов на главной и на странице «Партнерам». Порядок в списке = порядок в карусели.
+          Нужна картинка (JPG/PNG); PDF сначала переведите в картинку (см. ДЛЯ-РАЗРАБОТЧИКА.md).
+        fields:
+          - label: Сертификаты
+            name: items
+            widget: list
+            label_singular: сертификат
+            summary: '{{fields.alt}}'
+            fields:
+              - label: Картинка
+                name: image
+                widget: image
+                choose_url: false
+                media_folder: /src/assets/company-certificates
+                public_folder: /src/assets/company-certificates
+              - label: Подпись
+                name: alt
+                widget: string
+                hint: 'Что это за сертификат, например: Сертификат дилера Алютех'

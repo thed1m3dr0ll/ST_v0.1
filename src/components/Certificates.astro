@@ -1,0 +1,89 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import { partners } from '../data/partners';
+
+interface Props { showButton?: boolean; }
+const { showButton = true } = Astro.props;
+const large = await Promise.all(partners.map((p) => getImage({ src: p.cert, width: 900, format: 'webp' })));
+---
+<section class="section section--dark certs" id="certificates">
+  <div class="pattern pattern--fade-right"></div>
+  <div class="container certs__grid">
+    <div class="certs__intro reveal">
+      <p class="eyebrow">Сертификаты</p>
+      <h2 class="h2">Работаем<br />с надёжными<br />партнёрами</h2>
+      <p class="lead">Мы являемся сертифицированным партнёром ведущих производителей алюминиевых профильных систем и комплектующих.</p>
+      {showButton && <a href="/partners/" class="btn certs__btn">Все сертификаты <Icon name="arrow-right" /></a>}
+    </div>
+
+    <div class="certs__side">
+      <ul class="certs__list">
+        {partners.map((p, i) => (
+          <li class="reveal" style={`transition-delay:${i * 80}ms`}>
+            <button type="button" class="certs__card" data-cert={large[i].src} data-cert-title={`Сертификат ${p.name}`} aria-label={`Открыть сертификат ${p.name}`}>
+              <span class="certs__img-wrap"><Image src={p.cert} alt={`Сертификат ${p.name}`} widths={[240, 400]} sizes="(max-width: 640px) 45vw, 190px" class="certs__img" /></span>
+              <span class="certs__cap"><b>{p.name}</b><span>{p.status}</span></span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      <p class="tagline certs__tag2">Гарантия качества<br />на всех этапах</p>
+    </div>
+  </div>
+
+  <dialog class="lightbox" data-lightbox>
+    <button type="button" class="lightbox__close" aria-label="Закрыть" data-lightbox-close><Icon name="x" size={28} /></button>
+    <img src="" alt="" data-lightbox-img />
+  </dialog>
+</section>
+
+<style>
+  .certs { padding-block: 96px 96px; }
+  .certs__grid > * { min-width: 0; }
+  .certs__grid { position: relative; display: grid; grid-template-columns: 380px 1fr; gap: 46px; align-items: start; }
+  .certs__intro { display: grid; justify-items: start; }
+  .certs__intro .eyebrow { font-weight: 700; margin-bottom: 18px; }
+  .certs__intro .h2 { margin-bottom: 26px; }
+  .certs__btn { margin-top: 28px; --btn-bg: #1c3236; --btn-bd: #1c3236; font-size: 12px; }
+  .certs__side { padding-top: 78px; }
+  .certs__list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; }
+  .certs__card { display: block; width: 100%; text-align: left; background: #141f20; box-shadow: 0 20px 40px -20px rgba(0,0,0,.4); transition: transform .35s var(--ease), box-shadow .35s; }
+  .certs__card:hover { transform: translateY(-6px); box-shadow: 0 30px 50px -20px rgba(0,0,0,.6); }
+  .certs__img-wrap { display: block; aspect-ratio: 189 / 252; overflow: hidden; }
+  .certs__img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--ease); }
+  .certs__card:hover .certs__img { transform: scale(1.04); }
+  .certs__cap { display: grid; gap: 6px; padding: 18px 16px 20px; }
+  .certs__cap b { font-weight: 500; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
+  .certs__cap span { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: rgba(255,255,255,.55); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .certs__tag2 { margin-top: 24px; color: rgba(255,255,255,.75); }
+
+  .lightbox { padding: 0; border: 0; background: transparent; max-width: min(92vw, 720px); max-height: 92dvh; overflow: visible; }
+  .lightbox::backdrop { background: rgba(10,16,16,.85); }
+  .lightbox img { max-height: 88dvh; width: auto; margin-inline: auto; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  .lightbox__close { position: absolute; top: -44px; right: 0; color: #fff; }
+
+  @media (max-width: 1100px) {
+    .certs__grid { grid-template-columns: 1fr; }
+    .certs__side { padding-top: 0; }
+  }
+  @media (max-width: 640px) {
+    .certs { padding-block: 56px; }
+    .certs__list { grid-template-columns: 1fr 1fr; }
+    .certs__cap { padding: 12px 10px 14px; }
+    .certs__cap b { font-size: 12px; }
+    .certs__cap span { font-size: 10px; white-space: normal; }
+  }
+</style>
+
+<script>
+  const box = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  if (box) {
+    const img = box.querySelector<HTMLImageElement>('[data-lightbox-img]')!;
+    document.querySelectorAll<HTMLElement>('[data-cert]').forEach((b) => b.addEventListener('click', () => {
+      img.src = b.dataset.cert!; img.alt = b.dataset.certTitle ?? '';
+      box.showModal();
+    }));
+    box.addEventListener('click', () => box.close());
+  }
+</script>

@@ -1,0 +1,278 @@
+---
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import Consent from '../Consent.astro';
+import bgPhoto from '../../assets/quiz/timiryazevsky-bg.jpg';
+import imgHouse from '../../assets/quiz/private-house.jpg';
+import imgCommercial from '../../assets/quiz/commercial.jpg';
+import imgResidential from '../../assets/quiz/residential-complex.jpg';
+import imgOther from '../../assets/quiz/other-sadko.jpg';
+
+// Вопросы квиза. Шаг 1 — с картинками, остальные — списком.
+const objectTypes = [
+  { value: 'Частный дом', img: imgHouse },
+  { value: 'Коммерческий объект', img: imgCommercial },
+  { value: 'Жилой комплекс', img: imgResidential },
+  { value: 'Другое', img: imgOther },
+];
+const steps = [
+  { name: 'works', title: 'Какие конструкции вас интересуют?', multiple: true, options: ['Фасадное остекление', 'Алюминиевые окна', 'Алюминиевые двери', 'Остекление террас / веранд', 'Зимние сады', 'Перегородки', 'Ограждения', 'Зенитные фонари', 'Козырьки', 'Индивидуальные решения'] },
+  { name: 'area', title: 'Примерная площадь остекления', options: ['До 20 м²', 'От 20 до 50 м²', 'От 50 до 200 м²', 'От 200 до 1000 м²', 'Более 1000 м²', 'Пока не знаю'] },
+  { name: 'stage', title: 'На какой стадии проект?', options: ['Есть готовый проект', 'Есть эскиз', 'Нужно проектирование с нуля', 'Замена существующего остекления'] },
+];
+const TOTAL = 5;
+---
+<section class="quiz" id="quiz">
+  <div class="quiz__media">
+    <Image src={bgPhoto} alt="Панорамное остекление ЖК «Тимирязевский»" widths={[768, 1280, 1800, 2400]} sizes="(max-width: 1024px) 100vw, 47vw" class="quiz__img" />
+    <span class="quiz__media-shade"></span>
+    <p class="tagline quiz__media-tag">Больше возможностей<br />для ваших идей</p>
+  </div>
+
+  <div class="quiz__intro reveal">
+    <h2 class="h2 quiz__title">Узнайте стоимость<br />вашего объекта</h2>
+    <p class="lead">Ответьте на несколько вопросов, и мы подготовим предварительный расчёт в течение 1 рабочего дня.</p>
+  </div>
+
+  <form class="quiz__form reveal" data-quiz novalidate>
+    <div class="quiz__top">
+      <span class="quiz__step-label">Шаг <b data-quiz-num>1</b> из {TOTAL}</span>
+      <div class="quiz__progress" aria-hidden="true">
+        <span class="quiz__progress-bar" data-quiz-bar></span>
+        {Array.from({ length: TOTAL }).map((_, i) => <span class="quiz__progress-dot" style={`left:${(i / (TOTAL - 1)) * 100}%`} data-quiz-dot={i}></span>)}
+      </div>
+    </div>
+
+    <!-- Шаг 1 -->
+    <fieldset class="quiz__step is-active" data-step="0">
+      <legend class="quiz__q">Какой тип объекта?</legend>
+      <div class="quiz__cards">
+        {objectTypes.map((o) => (
+          <label class="quiz__card">
+            <input type="radio" name="objectType" value={o.value} />
+            <Image src={o.img} alt="" widths={[300, 460]} sizes="230px" class="quiz__card-img" />
+            <span class="quiz__card-foot"><span>{o.value}</span><span class="quiz__box"><Icon name="check" size={14} stroke={2} /></span></span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <!-- Шаги 2–4 -->
+    {steps.map((s, i) => (
+      <fieldset class="quiz__step" data-step={i + 1}>
+        <legend class="quiz__q">{s.title}{s.multiple && <small>можно выбрать несколько</small>}</legend>
+        <div class:list={['quiz__options', s.options.length > 6 && 'quiz__options--cols']}>
+          {s.options.map((o) => (
+            <label class="quiz__option">
+              <input type={s.multiple ? 'checkbox' : 'radio'} name={s.name} value={o} />
+              <span class="quiz__box"><Icon name="check" size={14} stroke={2} /></span>{o}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+    ))}
+
+    <!-- Шаг 5 — контакты -->
+    <fieldset class="quiz__step" data-step="4">
+      <legend class="quiz__q">Ваши контакты</legend>
+      <div class="quiz__fields">
+        <div class="field" data-quiz-name><label for="q-name">Имя *</label><input id="q-name" name="name" autocomplete="name" required /></div>
+        <div class="field" data-quiz-phone><label for="q-phone">Телефон *</label><input id="q-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+7 (___) ___-__-__" required data-phone /></div>
+        <div class="field quiz__fields-wide"><label for="q-contact">Удобный способ связи</label>
+          <select id="q-contact" name="contactWay" data-quiz-contact><option>Телефонный звонок</option><option>Электронная почта</option></select>
+        </div>
+        <div class="field quiz__fields-wide" data-quiz-email hidden><label for="q-email">E-mail *</label><input id="q-email" name="email" type="email" autocomplete="email" placeholder="name@mail.ru" disabled required /></div>
+        <div class="quiz__fields-wide"><Consent doc="consent" /></div>
+      </div>
+    </fieldset>
+
+    <div class="quiz__done" data-quiz-done hidden>
+      <span class="quiz__done-icon"><Icon name="check" size={28} /></span>
+      <p class="quiz__q">Спасибо! Заявка принята</p>
+      <p class="lead">Инженер изучит ответы и подготовит предварительный расчёт в течение 1 рабочего дня.</p>
+      <button type="button" class="btn btn--outline" data-quiz-restart>Пройти заново <Icon name="arrow-right" /></button>
+    </div>
+
+    <p class="form-error quiz__error" data-quiz-error role="alert" hidden>Выберите вариант, чтобы продолжить</p>
+
+    <div class="quiz__bottom" data-quiz-bottom>
+      <div class="quiz__btns">
+        <button type="button" class="icon-btn quiz__back" aria-label="Назад" data-quiz-back hidden><Icon name="arrow-left" /></button>
+        <button type="button" class="btn quiz__next" data-quiz-next><span data-quiz-next-label>Далее</span> <Icon name="arrow-right" /></button>
+      </div>
+      <span class="quiz__time">Это займёт не более 2 минут</span>
+    </div>
+  </form>
+</section>
+
+<style>
+  .quiz { position: relative; display: grid; grid-template-columns: minmax(0, 893fr) minmax(0, 440fr) minmax(0, 587fr); min-height: 750px; background: linear-gradient(90deg, #fbfdff, var(--bg-soft)); overflow: hidden; }
+  .quiz::after { content: ''; position: absolute; inset: 0 0 0 65%; pointer-events: none; background: url('/images/pattern-dark.webp') center / cover no-repeat; opacity: .045;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 30%); mask-image: linear-gradient(90deg, transparent, #000 30%); }
+  .quiz__media { position: relative; grid-column: 1; grid-row: 1; clip-path: polygon(0 0, 92.1% 0, 100% 100%, 0 100%); }
+  .quiz__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 72% 50%; } /* в кадре — остеклённые этажи ЖК */
+  .quiz__media-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(61,74,71,.8) 0%, rgba(61,74,71,0) 45%); }
+  .quiz__media-tag { position: absolute; left: 32px; bottom: 40px; color: #fbfdff; font-weight: 700; font-size: 11px; letter-spacing: .08em; border-left-color: rgba(251,253,255,.7); }
+
+  .quiz__intro { position: relative; z-index: 1; align-self: center; padding: 60px 24px 60px 2.2vw; max-width: 430px; display: grid; gap: 0; grid-column: 2; grid-row: 1; }
+  .quiz__title { margin-bottom: 22px; } /* размер — общий .h2, как у «Почему нас выбирают» */
+
+  .quiz__form {
+    position: relative; z-index: 1;
+    grid-column: 3; grid-row: 1; justify-self: end; align-self: center;
+    width: min(543px, calc(100% - 24px)); margin: 56px 48px 56px 0; padding: 36px 37px 34px;
+    background: #fbfdff; border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);
+    display: flex; flex-direction: column; min-height: 600px;
+  }
+  .quiz__top { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .quiz__step-label { font-size: 11px; color: var(--text); }
+  .quiz__step-label b { font-weight: 400; }
+  .quiz__progress { position: relative; flex: 0 1 227px; height: 2px; background: var(--line); }
+  .quiz__progress-bar { position: absolute; left: 0; top: 0; height: 2px; width: 15%; background: var(--green-900); transition: width .45s var(--ease); }
+  .quiz__progress-dot { position: absolute; top: -2px; width: 9px; height: 6px; margin-left: -4.5px; background: #fbfdff; border: 1px solid var(--icon-border); transition: background .3s, border-color .3s; }
+  .quiz__progress-dot:first-of-type { display: none; }
+  .quiz__progress-dot.is-done { background: var(--green-900); border-color: var(--green-900); }
+
+  .quiz__step { display: none; border: 0; padding: 0; margin: 26px 0 0; min-width: 0; }
+  .quiz__step.is-active { display: block; animation: step-in .4s var(--ease); }
+  @keyframes step-in { from { opacity: 0; transform: translateX(16px); } }
+  .quiz__q { padding: 0; margin-bottom: 22px; font-weight: 700; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); }
+  .quiz__q small { display: block; margin-top: 6px; font-weight: 400; font-size: 11px; letter-spacing: .04em; text-transform: none; color: var(--text-2); }
+
+  .quiz__cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 13px; }
+  .quiz__card { position: relative; display: block; border: 1px solid var(--line); cursor: pointer; transition: border-color .25s, box-shadow .25s; }
+  .quiz__card:hover { border-color: var(--icon-border); }
+  .quiz__card:has(input:checked) { border-color: var(--green-900); box-shadow: 0 0 0 1px var(--green-900); }
+  .quiz__card input, .quiz__option input { position: absolute; opacity: 0; pointer-events: none; }
+  .quiz__card-img { width: 100%; aspect-ratio: 225 / 128; object-fit: cover; }
+  .quiz__card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 12px 15px; font-size: 12px; color: var(--ink); }
+  .quiz__box { display: grid; place-items: center; width: 21px; height: 18px; flex: none; border: 1px solid #99bab8; background: #fbfdff; color: transparent; transition: background .2s, color .2s, border-color .2s; }
+  input:checked ~ * .quiz__box, input:checked ~ .quiz__box { background: var(--green-900); border-color: var(--green-900); color: #fbfdff; }
+  input:focus-visible ~ .quiz__box, input:focus-visible ~ * .quiz__box { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .quiz__options { display: grid; gap: 10px; }
+  .quiz__options--cols { grid-template-columns: 1fr 1fr; }
+  .quiz__options--cols .quiz__option { padding: 13px 14px; gap: 12px; font-size: 13px; line-height: 1.3; }
+  .quiz__option { position: relative; display: flex; align-items: center; gap: 14px; padding: 15px 16px; border: 1px solid var(--line); font-size: 14px; color: var(--ink); cursor: pointer; transition: border-color .2s, background .2s; }
+  .quiz__option:hover { border-color: var(--icon-border); background: var(--bg-tint); }
+  .quiz__option:has(input:checked) { border-color: var(--green-900); background: var(--bg-soft); }
+  .quiz__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 14px; }
+  .quiz__fields-wide { grid-column: 1 / -1; }
+
+  .quiz__done { margin-top: 32px; display: grid; justify-items: start; gap: 18px; }
+  .quiz__done-icon { display: grid; place-items: center; width: 56px; height: 56px; background: var(--icon-bg); border: 1px solid var(--icon-border); color: var(--green-900); }
+  .quiz__error { margin-top: 14px; }
+
+  .quiz__bottom { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: auto; padding-top: 24px; border-top: 1px solid var(--line); }
+  .quiz__bottom[hidden] { display: none; }
+  .quiz__btns { display: flex; gap: 8px; }
+  .quiz__back { width: 44px; height: 44px; }
+  .quiz__next { min-width: 134px; justify-content: center; }
+  .quiz__time { font-size: 11px; color: var(--text); text-align: right; }
+
+  @media (max-width: 1280px) {
+    .quiz { grid-template-columns: 1fr 1fr; }
+    .quiz__intro { display: none; }
+    .quiz__form { grid-column: 2; justify-self: center; margin: 48px 24px; }
+  }
+  @media (max-width: 860px) {
+    .quiz { grid-template-columns: 1fr; min-height: 0; }
+    .quiz__media { grid-row: auto; height: 300px; clip-path: polygon(0 0, 100% 0, 100% 86%, 0 100%); }
+    .quiz__intro { display: grid; grid-column: 1; grid-row: auto; max-width: none; padding: 40px var(--gutter) 8px; }
+    .quiz__form { grid-column: 1; grid-row: auto; width: auto; margin: 24px var(--gutter) 56px; justify-self: stretch; padding: 24px 18px; min-height: 0; }
+  }
+  @media (max-width: 480px) {
+    .quiz__cards { gap: 10px; }
+    .quiz__card-foot { padding: 10px 8px; font-size: 11px; }
+    .quiz__fields { grid-template-columns: 1fr; }
+    .quiz__options--cols { grid-template-columns: 1fr; }
+    .quiz__options--cols .quiz__option { padding: 12px 14px; }
+    .quiz__time { display: none; }
+    .quiz__top { flex-direction: column; align-items: stretch; gap: 14px; }
+    .quiz__progress { flex-basis: auto; }
+  }
+</style>
+
+<script>
+  import { checkForm, clearInvalid, initFormCheck, resetConsent, submitLead } from '../../scripts/leads';
+
+  document.querySelectorAll<HTMLFormElement>('[data-quiz]').forEach((form) => {
+    const steps = [...form.querySelectorAll<HTMLElement>('[data-step]')];
+    const total = steps.length;
+    const num = form.querySelector<HTMLElement>('[data-quiz-num]')!;
+    const bar = form.querySelector<HTMLElement>('[data-quiz-bar]')!;
+    const dots = [...form.querySelectorAll<HTMLElement>('[data-quiz-dot]')];
+    const next = form.querySelector<HTMLButtonElement>('[data-quiz-next]')!;
+    const nextLabel = form.querySelector<HTMLElement>('[data-quiz-next-label]')!;
+    const back = form.querySelector<HTMLButtonElement>('[data-quiz-back]')!;
+    const err = form.querySelector<HTMLElement>('[data-quiz-error]')!;
+    const done = form.querySelector<HTMLElement>('[data-quiz-done]')!;
+    const bottom = form.querySelector<HTMLElement>('[data-quiz-bottom]')!;
+    const contactWay = form.querySelector<HTMLSelectElement>('[data-quiz-contact]')!;
+    const emailField = form.querySelector<HTMLElement>('[data-quiz-email]')!;
+    const emailInput = emailField.querySelector('input')!;
+    const phoneField = form.querySelector<HTMLElement>('[data-quiz-phone]')!;
+    const phoneInput = phoneField.querySelector('input')!;
+    const nameField = form.querySelector<HTMLElement>('[data-quiz-name]')!;
+    let i = 0;
+
+    // при выборе «Электронная почта» обязательным становится e-mail вместо телефона
+    const syncEmail = () => {
+      const on = contactWay.value === 'Электронная почта';
+      emailField.hidden = !on; emailInput.disabled = !on;
+      phoneField.hidden = on; phoneInput.disabled = on;
+      nameField.classList.toggle('quiz__fields-wide', on);
+      clearInvalid(emailInput); clearInvalid(phoneInput);
+    };
+    contactWay.addEventListener('change', syncEmail);
+    initFormCheck(steps[total - 1], err);
+    // браузер мог восстановить галочки при возврате на страницу — ставить их человек должен сам
+    window.addEventListener('pageshow', () => resetConsent(form));
+
+    const render = () => {
+      steps.forEach((s, k) => s.classList.toggle('is-active', k === i));
+      num.textContent = String(i + 1);
+      bar.style.width = `${Math.max(15, (i / (total - 1)) * 100)}%`;
+      dots.forEach((d, k) => d.classList.toggle('is-done', k <= i));
+      back.hidden = i === 0;
+      nextLabel.textContent = i === total - 1 ? 'Получить расчёт' : 'Далее';
+      err.hidden = true;
+    };
+
+    const valid = () => {
+      const step = steps[i];
+      const inputs = [...step.querySelectorAll<HTMLInputElement>('input, select')];
+      if (inputs.some((x) => x.type === 'radio' || x.type === 'checkbox') && i < total - 1) {
+        return inputs.some((x) => x.checked);
+      }
+      return inputs.every((x) => x.checkValidity());
+    };
+
+    // на шаге с одним вариантом (radio) переходим дальше автоматически
+    form.addEventListener('change', (e) => {
+      const t = e.target as HTMLInputElement;
+      if (t.type === 'radio' && i < total - 1) setTimeout(() => { if (valid()) { i++; render(); } }, 280);
+    });
+
+    next.addEventListener('click', async () => {
+      if (i < total - 1) {
+        if (!valid()) { err.textContent = 'Выберите вариант, чтобы продолжить'; err.hidden = false; return; }
+        i++; render(); return;
+      }
+      const problem = checkForm(steps[i]);
+      if (problem) { err.textContent = problem; err.hidden = false; return; }
+      const fd = new FormData(form);
+      const data: Record<string, unknown> = {};
+      fd.forEach((v, k) => { data[k] = data[k] ? [data[k], v].flat() : v; });
+      await submitLead('quiz', form, data);
+      steps.forEach((s) => s.classList.remove('is-active'));
+      bottom.hidden = true; done.hidden = false;
+      bar.style.width = '100%';
+    });
+    back.addEventListener('click', () => { if (i > 0) { i--; render(); } });
+    form.querySelector('[data-quiz-restart]')?.addEventListener('click', () => {
+      form.reset(); syncEmail(); resetConsent(form); i = 0; done.hidden = true; bottom.hidden = false; render();
+    });
+    render();
+  });
+</script>

@@ -1,0 +1,81 @@
+---
+import SectionHead from '../SectionHead.astro';
+import Icon from '../Icon.astro';
+
+interface Props { soft?: boolean; } // soft — светло-зелёный фон, чтобы отделить от белой секции выше
+const { soft = false } = Astro.props;
+
+const workSteps = [
+  { icon: 'message', title: 'Консультация и задача', text: 'Обсуждаем ваши потребности, особенности объекта и подбираем оптимальное решение.' },
+  { icon: 'compass', title: 'Проектирование', text: 'Разрабатываем техническое решение, 3D-визуализацию (по требованию) и согласовываем детали.' },
+  { icon: 'file', title: 'Согласование и договор', text: 'Фиксируем стоимость, сроки и все условия в договоре.' },
+  { icon: 'sliders', title: 'Производство', text: 'Изготавливаем конструкции на собственном производстве, основываясь на строительных нормах и проектной документации.' },
+  { icon: 'truck', title: 'Доставка', text: 'Организуем собственную логистику и бережную доставку на объект.' },
+  { icon: 'wrench', title: 'Монтаж и сдача объекта', text: 'Профессиональный монтаж и финальная приёмка. Вы получаете готовое решение.' },
+];
+---
+<section class:list={['section steps', { 'steps--soft': soft }]} id="process">
+  <div class="pattern steps__pattern"></div>
+  <div class="container">
+    <SectionHead title="Как мы работаем">
+      <p class="tagline steps__tag">Прозрачный процесс.<br />Надёжный результат.</p>
+    </SectionHead>
+
+    <ol class="steps__list">
+      {workSteps.map((s, i) => (
+        <li class="steps__item reveal" style={`transition-delay:${i * 70}ms`}>
+          <span class="steps__num">{String(i + 1).padStart(2, '0')}</span>
+          <div class="steps__card">
+            <span class="icon-tile"><Icon name={s.icon} size={20} /></span>
+            <h3 class="h3">{s.title}</h3>
+            <p>{s.text}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .steps {
+    --steps-line: var(--brand-moss); /* линия этапов и заголовки карточек — «Зелёный мох» из брендбука */
+    background: linear-gradient(180deg, #fbfdff, #fbfdff); padding-block: 96px 96px; box-shadow: 0 30px 60px -15px rgba(0,0,0,.08); z-index: 1;
+  }
+  .steps--soft { background: linear-gradient(180deg, rgba(153,186,184,.22), rgba(153,186,184,.1)), var(--bg); border-top: 1px solid rgba(153,186,184,.45); }
+  .steps :global(.h2) { color: var(--brand-moss); } /* самый тёмный цвет брендбука */
+  .steps__pattern { left: 50%; right: 12%; top: 40px; bottom: 60px; opacity: .06; -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent); mask-image: radial-gradient(closest-side, #000 55%, transparent); }
+  /* Шапка без описания: заголовок слева, подпись справа — по нижнему краю заголовка */
+  .steps :global(.sec-head) { grid-template-columns: max-content auto; align-items: end; }
+  .steps :global(.sec-head__aside) { padding-top: 0; padding-bottom: 8px; }
+  .steps__tag { color: var(--ink); font-weight: 700; font-size: 11px; }
+  /* Строки «цифра / иконка / заголовок / описание» общие для всех карточек (subgrid),
+     поэтому заголовки и описания стоят на одной линии, а карточки одной высоты */
+  .steps__list { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); column-gap: 8px; row-gap: 0; margin-top: 54px; }
+  .steps__list::before { content: ''; position: absolute; left: 20px; right: 20px; top: 20px; height: 1px; background: var(--steps-line); }
+  .steps__item { position: relative; display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 0; }
+  .steps__num { position: relative; display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 12px; border-radius: 9px; background: #708a87; color: #fbfdff; font-weight: 500; font-size: 14px; transition: background .3s; }
+  .steps__item:hover .steps__num { background: #3d4a47; }
+  .steps__card { display: grid; grid-row: span 3; grid-template-rows: subgrid; row-gap: 0; align-items: start; padding: 14px 14px 18px; background: rgba(251,253,255,.7); border: 1px solid rgba(153, 186, 184, .3); transition: background .3s, box-shadow .3s, transform .3s var(--ease); }
+  .steps__item:hover .steps__card { background: #fbfdff; transform: translateY(-3px); box-shadow: 0 24px 40px -28px rgba(61,74,71,.35); }
+  /* Значок без плашки: зелёный контур, светло-зелёная заливка */
+  .steps__card .icon-tile { width: 34px; height: 34px; margin-bottom: 12px; place-items: center start; background: none; border: 0; color: var(--brand-mint); }
+  .steps__card .icon-tile :global(svg) { width: 28px; height: 28px; fill: rgba(153, 186, 184, .5); } /* пастельно-бирюзовый из брендбука, светлее */
+  .steps__card .h3 { font-size: 13px; margin-bottom: 10px; color: var(--steps-line); }
+  .steps__card p { font-size: 12px; line-height: 1.38; color: var(--text); }
+  @media (max-width: 1100px) {
+    .steps__list { grid-template-columns: repeat(3, 1fr); }
+    .steps__item { margin-bottom: 24px; }
+    .steps__list::before { display: none; }
+    .steps :global(.sec-head) { grid-template-columns: 1fr; align-items: start; }
+    .steps :global(.sec-head__aside) { align-items: flex-start; padding-bottom: 0; }
+  }
+  @media (max-width: 640px) {
+    .steps { padding-block: 56px; }
+    .steps__list { grid-template-columns: 1fr; margin-top: 32px; }
+    .steps__list::before { display: block; left: 20px; right: auto; top: 20px; bottom: 20px; width: 1px; height: auto; }
+    /* на телефоне карточки идут столбиком — общие строки не нужны */
+    .steps__item { grid-row: auto; grid-template-rows: none; grid-template-columns: 40px 1fr; column-gap: 14px; margin-bottom: 0; padding-bottom: 12px; }
+    .steps__num { margin-bottom: 0; }
+    .steps__card { grid-row: auto; grid-template-rows: none; }
+  }
+</style>

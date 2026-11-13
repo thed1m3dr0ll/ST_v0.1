@@ -1,0 +1,410 @@
+---
+// Всплывающее окно объекта на странице «Объекты». Открывается кнопкой с атрибутом data-object="<slug>" (ProjectCard).
+// Слева — большое фото, под ним миниатюры остальных фото: при выборе миниатюра становится большим фото,
+// а большое уходит в ленту. Справа — тип, название, «Локация» и «Выполненные работы». Закрывается крестиком (и Esc).
+// Нажатие на большое фото открывает его ещё крупнее поверх окна, фон затемняется. Закрывается крестиком и Esc,
+// на телефоне ещё смахиванием снизу вверх. Окно объекта под ним остаётся открытым.
+// Внутри просмотра приближается только фото, масштаб страницы не меняется: щипок на тачпаде или пальцами, Ctrl + колёсико,
+// двойное нажатие. Приближенное фото двигается пальцем или мышью, на тачпаде — двумя пальцами.
+import { getImage } from 'astro:assets';
+import Icon from './Icon.astro';
+import { typeLabels, type Project } from '../data/projects';
+interface Props { projects: Project[]; }
+const { projects } = Astro.props;
+
+const data = await Promise.all(projects.map(async (p) => ({
+  slug: p.slug,
+  title: p.title,
+  type: typeLabels[p.type],
+  location: p.location,
+  works: p.works ?? [],
+  images: await Promise.all(p.gallery.map(async (img) => {
+    const big = await getImage({ src: img, widths: [960, 1440, 2000] });
+    const thumb = await getImage({ src: img, width: 280 });
+    return { src: big.src, srcset: big.srcSet.attribute, w: img.width, h: img.height, thumb: thumb.src };
+  })),
+})));
+---
+<dialog class="omodal" data-object-modal aria-labelledby="omodal-title">
+  <div class="omodal__box">
+    <button type="button" class="icon-btn omodal__close" aria-label="Закрыть" data-object-close><Icon name="x" /></button>
+
+    <div class="omodal__gallery">
+      <div class="omodal__stage" data-stage>
+        <img class="omodal__img" data-main alt="" sizes="(max-width: 900px) 100vw, 820px" />
+        <button type="button" class="omodal__zoom" aria-label="Открыть фото крупнее" data-zoom></button>
+        <button type="button" class="omodal__nav omodal__nav--prev" aria-label="Предыдущее фото" data-prev><Icon name="arrow-left" /></button>
+        <button type="button" class="omodal__nav omodal__nav--next" aria-label="Следующее фото" data-next><Icon name="arrow-right" /></button>
+        <span class="omodal__count" data-count></span>
+      </div>
+      <div class="omodal__thumbs" data-thumbs></div>
+    </div>
+
+    <div class="omodal__info">
+      <p class="eyebrow" data-type></p>
+      <h2 class="omodal__title" id="omodal-title" data-title></h2>
+      <dl class="omodal__facts">
+        <div class="omodal__fact"><dt>Локация</dt><dd data-location></dd></div>
+        <div class="omodal__fact" data-works-row><dt>Выполненные работы</dt><dd data-works></dd></div>
+      </dl>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="olight" data-object-light aria-label="Фото объекта">
+  <div class="olight__bg"></div>
+  <img class="olight__img" data-light-img alt="" sizes="200vw" draggable="false" />
+  <button type="button" class="olight__close" aria-label="Закрыть фото" data-light-close><Icon name="x" /></button>
+</dialog>
+
+<script type="application/json" is:inline data-objects-json set:html={JSON.stringify(data)}></script>
+
+<style>
+  .omodal { width: min(1240px, calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); padding: 0; border: 0; background: transparent; overflow: visible; }
+  .omodal::backdrop { background: rgba(61,74,71,.72); backdrop-filter: blur(4px); }
+  .omodal[open] { animation: omodal-in .35s var(--ease); }
+  @keyframes omodal-in { from { opacity: 0; transform: translateY(16px); } }
+
+  .omodal__box { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 36px; max-height: calc(100dvh - 32px); overflow: auto; padding: 28px; background: var(--white); border: 1px solid var(--line); border-radius: 9px; }
+  .omodal__close { position: absolute; right: 20px; top: 20px; z-index: 2; width: 40px; height: 40px; background: var(--white); }
+
+  .omodal__gallery { display: grid; gap: 12px; min-width: 0; align-content: start; }
+  /* Высота фото подстраивается под окно: на ноутбуке окно целиком помещается на экране без прокрутки */
+  .omodal__stage { position: relative; aspect-ratio: 3 / 2; max-height: calc(100dvh - 32px - 56px - 84px); min-height: 240px; overflow: hidden; border-radius: 9px; background: var(--bg-soft); touch-action: pan-y; user-select: none; }
+  .omodal__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: opacity .3s var(--ease); }
+  .omodal__img.is-portrait { object-fit: contain; }
+  .omodal__img.is-fading { opacity: 0; }
+  .omodal__zoom { position: absolute; inset: 0; width: 100%; height: 100%; cursor: zoom-in; }
+  .omodal__zoom:focus-visible { outline-offset: -4px; }
+  .omodal__nav { position: absolute; top: 50%; z-index: 1; display: grid; place-items: center; width: 40px; height: 40px; margin-top: -20px; border: 1px solid rgba(251,253,255,.5); border-radius: 9px; background: rgba(61,74,71,.45); color: var(--white); backdrop-filter: blur(4px); transition: background .25s var(--ease), color .25s var(--ease); }
+  .omodal__nav svg { width: 16px; height: 16px; }
+  .omodal__nav:hover { background: var(--white); color: var(--green-900); }
+  .omodal__nav--prev { left: 12px; }
+  .omodal__nav--next { right: 12px; }
+  .omodal__count { position: absolute; left: 12px; bottom: 12px; padding: 5px 10px; border-radius: 9px; background: rgba(61,74,71,.6); color: var(--white); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  .omodal__thumbs { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--brand-pastel) transparent; padding-bottom: 2px; }
+  .omodal__thumbs :global(button) { flex: none; width: 108px; height: 72px; padding: 0; overflow: hidden; border-radius: 9px; border: 1px solid var(--line); background: var(--bg-soft); opacity: .8; transition: opacity .25s var(--ease), border-color .25s; }
+  .omodal__thumbs :global(button:hover) { opacity: 1; border-color: var(--brand-pastel); }
+  .omodal__thumbs :global(img) { width: 100%; height: 100%; object-fit: cover; }
+
+  .omodal__info { display: grid; align-content: start; gap: 14px; padding-top: 6px; min-width: 0; }
+  .omodal__title { padding-right: 52px; font-weight: 700; font-size: clamp(22px, 1.9vw, 30px); line-height: 1.25; text-transform: uppercase; color: var(--ink); }
+  /* Подписи и тексты — с одной левой линии, пункты разделены тонкой чертой */
+  .omodal__facts { display: grid; margin-top: 10px; border-top: 1px solid var(--brand-pastel); }
+  .omodal__fact { display: grid; gap: 8px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .omodal__fact dt { font-size: 11px; letter-spacing: .025em; text-transform: uppercase; color: var(--text); }
+  .omodal__fact dd { display: grid; gap: 8px; margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink); }
+
+  @media (max-width: 900px) {
+    .omodal { width: calc(100% - 16px); max-height: calc(100dvh - 16px); }
+    .omodal__box { grid-template-columns: 1fr; gap: 20px; max-height: calc(100dvh - 16px); padding: 64px 16px 20px; }
+    .omodal__close { right: 12px; top: 12px; }
+    .omodal__stage { max-height: none; aspect-ratio: 4 / 3; }
+    .omodal__thumbs :global(button) { width: 84px; height: 58px; }
+    .omodal__title { padding-right: 0; }
+    .omodal__info { padding-top: 0; }
+  }
+
+  /* Крупный просмотр: отдельное окно поверх окна объекта. Фон — мох, затемнённый на четверть (как на первом экране главной).
+     touch-action: none — жесты пальцами обрабатывает скрипт: приближается только фото, а не вся страница.
+     sizes 200vw — берём файл покрупнее, чтобы приближенное фото не было мыльным */
+  .olight { position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 40px 72px; border: 0; background: transparent; overflow: hidden; touch-action: none; }
+  .olight[open] { display: grid; grid-template-rows: minmax(0, 1fr); place-items: center; }
+  .olight::backdrop { background: transparent; }
+  .olight__bg { position: absolute; inset: 0; background: rgba(46,56,54,.94); opacity: var(--fade, 1); }
+  .olight__img { position: relative; width: auto; max-width: 100%; height: auto; max-height: 100%; border-radius: 9px; user-select: none; -webkit-user-select: none; cursor: zoom-in; }
+  .olight[open] .olight__bg { animation: olight-bg .28s var(--ease) backwards; }
+  .olight[open] .olight__img { animation: olight-in .38s var(--ease) backwards; }
+  @keyframes olight-bg { from { opacity: 0; } }
+  @keyframes olight-in { from { opacity: 0; transform: scale(.82); } }
+  .olight.is-smooth .olight__bg { transition: opacity .24s var(--ease); }
+  .olight.is-smooth .olight__img { transition: transform .24s var(--ease), opacity .24s var(--ease); }
+  .olight.is-zoomed .olight__img { cursor: grab; }
+  .olight.is-panning .olight__img { cursor: grabbing; }
+  .olight__close { position: absolute; right: 20px; top: 20px; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid rgba(251,253,255,.5); border-radius: 9px; background: rgba(61,74,71,.45); color: var(--white); transition: background .25s var(--ease), color .25s var(--ease); }
+  .olight__close:hover { background: var(--white); color: var(--green-900); }
+  @media (max-width: 900px) {
+    .olight { padding: 68px 8px; }
+    .olight__close { right: 12px; top: 12px; }
+  }
+  /* телефон лежит на боку: фото на всю высоту, крестик сбоку от него */
+  @media (max-height: 500px) { .olight { padding: 8px 64px; } }
+  @media (prefers-reduced-motion: reduce) { .olight__bg, .olight__img { animation: none !important; transition: none; } }
+</style>
+
+<script>
+  interface Img { src: string; srcset: string; w: number; h: number; thumb: string; }
+  interface Obj { slug: string; title: string; type: string; location: string; works: string[]; images: Img[]; }
+
+  const modal = document.querySelector<HTMLDialogElement>('[data-object-modal]');
+  const json = document.querySelector<HTMLScriptElement>('[data-objects-json]');
+  if (modal && json) {
+    const objects: Obj[] = JSON.parse(json.textContent || '[]');
+    const $ = <T extends HTMLElement>(s: string) => modal.querySelector<T>(s)!;
+    const main = $<HTMLImageElement>('[data-main]');
+    const thumbs = $('[data-thumbs]');
+    const count = $('[data-count]');
+    const prev = $<HTMLButtonElement>('[data-prev]');
+    const next = $<HTMLButtonElement>('[data-next]');
+    const worksRow = $('[data-works-row]');
+    const light = document.querySelector<HTMLDialogElement>('[data-object-light]')!;
+    const lightImg = light.querySelector<HTMLImageElement>('[data-light-img]')!;
+    let obj: Obj | null = null;
+    let cur = 0;
+    let sx = 0, closing = false;
+    // состояние крупного просмотра
+    let scale = 1, tx = 0, ty = 0;
+    let swipeY: number | null = null, swipeT = 0, lastTap = 0, tapMoved = false;
+    let downAt = { x: 0, y: 0 };
+    let pan: { x: number; y: number; tx: number; ty: number } | null = null;
+    let pinch: { d: number; x: number; y: number; scale: number; tx: number; ty: number } | null = null;
+    const touches = new Map<number, { x: number; y: number }>();
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    function show(i: number, animate = true) {
+      if (!obj) return;
+      const n = obj.images.length;
+      cur = (i + n) % n;
+      const img = obj.images[cur];
+      const apply = () => {
+        main.srcset = img.srcset;
+        main.src = img.src;
+        main.alt = `${obj!.title} — фото ${cur + 1} из ${n}`;
+        main.classList.toggle('is-portrait', img.h > img.w * 0.9);
+        if (main.complete) main.classList.remove('is-fading');
+      };
+      if (animate) { main.classList.add('is-fading'); setTimeout(apply, 180); } else apply();
+      count.textContent = `${pad(cur + 1)} / ${pad(n)}`;
+
+      // Лента — остальные фото по порядку, начиная со следующего за большим
+      thumbs.replaceChildren(...Array.from({ length: n - 1 }, (_, k) => {
+        const j = (cur + 1 + k) % n;
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', `Показать фото ${j + 1}`);
+        const t = document.createElement('img');
+        t.src = obj!.images[j].thumb; t.alt = ''; t.loading = 'lazy';
+        b.append(t);
+        b.addEventListener('click', () => show(j));
+        return b;
+      }));
+      thumbs.scrollLeft = 0;
+
+      // Подгружаем соседние фото заранее, чтобы листалось без задержки
+      [cur + 1, cur - 1].forEach((k) => { const p = obj!.images[(k + n) % n]; const pre = new Image(); pre.sizes = main.sizes; pre.srcset = p.srcset; pre.src = p.src; });
+    }
+
+    main.addEventListener('load', () => main.classList.remove('is-fading'));
+
+    function open(slug: string) {
+      obj = objects.find((o) => o.slug === slug) ?? null;
+      if (!obj) return;
+      $('[data-type]').textContent = obj.type;
+      $('[data-title]').textContent = obj.title;
+      $('[data-location]').textContent = obj.location;
+      const works = $('[data-works]');
+      works.replaceChildren(...obj.works.map((w) => Object.assign(document.createElement('p'), { textContent: w })));
+      worksRow.hidden = obj.works.length === 0;
+      const many = obj.images.length > 1;
+      prev.hidden = next.hidden = thumbs.hidden = !many;
+      show(0, false);
+      modal!.showModal();
+      modal!.querySelector<HTMLElement>('.omodal__box')!.scrollTop = 0;
+      document.body.classList.add('no-scroll');
+    }
+
+    document.addEventListener('click', (e) => {
+      const card = (e.target as HTMLElement).closest<HTMLElement>('[data-object]');
+      if (card) open(card.dataset.object!);
+    });
+    $('[data-object-close]').addEventListener('click', () => modal.close());
+    modal.addEventListener('close', () => {
+      if (!document.querySelector('dialog[open]')) document.body.classList.remove('no-scroll');
+    });
+    prev.addEventListener('click', () => show(cur - 1));
+    next.addEventListener('click', () => show(cur + 1));
+    modal.addEventListener('keydown', (e) => {
+      if (!obj || obj.images.length < 2) return;
+      if (e.key === 'ArrowLeft') show(cur - 1);
+      if (e.key === 'ArrowRight') show(cur + 1);
+    });
+
+    // Свайп по большому фото на телефоне
+    const stage = $('[data-stage]');
+    let x0: number | null = null;
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') x0 = e.clientX; });
+    stage.addEventListener('pointerup', (e) => {
+      if (x0 === null || !obj || obj.images.length < 2) return;
+      const dx = e.clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1));
+    });
+    stage.addEventListener('pointercancel', () => { x0 = null; });
+
+    // Крупный просмотр. Свайп по фото не должен его открывать — поэтому запоминаем, сдвинулся ли палец
+    let swiped = false;
+    stage.addEventListener('pointerdown', (e) => { sx = e.clientX; swiped = false; });
+    stage.addEventListener('pointerup', (e) => { swiped = Math.abs(e.clientX - sx) > 10; });
+    $('[data-zoom]').addEventListener('click', () => { if (!swiped) openLight(); });
+
+    const MAX_ZOOM = 4;
+    const limit = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+    const center = () => ({ x: lightImg.offsetLeft + lightImg.offsetWidth / 2, y: lightImg.offsetTop + lightImg.offsetHeight / 2 });
+    const smooth = (on: boolean) => light.classList.toggle('is-smooth', on);
+
+    async function openLight() {
+      if (!obj) return;
+      const img = obj.images[cur];
+      closing = false;
+      light.classList.remove('is-smooth', 'is-zoomed', 'is-panning');
+      light.style.removeProperty('--fade');
+      lightImg.style.transform = lightImg.style.opacity = '';
+      scale = 1; tx = ty = 0; swipeY = null; pan = null; pinch = null; touches.clear();
+      lightImg.srcset = img.srcset;
+      lightImg.src = img.src;
+      lightImg.alt = main.alt;
+      // ждём файл покрупнее, но недолго: фото должно вылетать сразу после нажатия
+      await Promise.race([lightImg.decode().catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
+      light.showModal();
+    }
+
+    function closeLight(up = false) {
+      if (closing) return;
+      closing = true;
+      smooth(true);
+      light.style.setProperty('--fade', '0');
+      lightImg.style.opacity = '0';
+      lightImg.style.transform = up ? 'translateY(-100dvh)' : 'scale(.92)';
+      setTimeout(() => light.close(), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 240);
+    }
+
+    light.querySelector('[data-light-close]')!.addEventListener('click', () => closeLight());
+    light.addEventListener('cancel', (e) => { e.preventDefault(); closeLight(); }); // Esc закрывает только фото, окно объекта остаётся
+
+    // Показываем фото с текущим масштабом и сдвигом. Края приближенного фото не отходят от краёв экрана
+    function applyZoom() {
+      const maxX = Math.max(0, (lightImg.offsetWidth * scale - light.clientWidth) / 2);
+      const maxY = Math.max(0, (lightImg.offsetHeight * scale - light.clientHeight) / 2);
+      tx = limit(tx, -maxX, maxX);
+      ty = limit(ty, -maxY, maxY);
+      light.classList.toggle('is-zoomed', scale > 1);
+      lightImg.style.transform = scale > 1 ? `translate(${tx}px, ${ty}px) scale(${scale})` : '';
+    }
+
+    // Новый масштаб так, чтобы точка фото под курсором или пальцами оставалась на месте
+    function zoomAt(next: number, x: number, y: number) {
+      const c = center();
+      const px = (x - c.x - tx) / scale, py = (y - c.y - ty) / scale;
+      scale = limit(next, 1, MAX_ZOOM);
+      if (scale < 1.02) { scale = 1; tx = ty = 0; } else { tx = x - c.x - px * scale; ty = y - c.y - py * scale; }
+      applyZoom();
+    }
+
+    // Щипок на тачпаде браузер присылает как прокрутку с Ctrl — её и перехватываем, иначе менялся бы масштаб всей страницы.
+    // Обычная прокрутка (два пальца на тачпаде, колёсико) двигает приближенное фото
+    light.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      smooth(false);
+      if (e.ctrlKey) {
+        zoomAt(scale * Math.exp(-limit(e.deltaY, -50, 50) * .01), e.clientX, e.clientY);
+      } else if (scale > 1) {
+        tx -= e.deltaX; ty -= e.deltaY;
+        applyZoom();
+      }
+    }, { passive: false });
+
+    // Safari присылает щипок отдельными событиями: на Mac это тачпад, на iPhone пальцы уже обработаны ниже
+    let gestureFrom = 1;
+    light.addEventListener('gesturestart', (e) => { e.preventDefault(); gestureFrom = scale; });
+    light.addEventListener('gesturechange', (e) => {
+      e.preventDefault();
+      const g = e as unknown as { scale: number; clientX: number; clientY: number };
+      if (!touches.size) { smooth(false); zoomAt(gestureFrom * g.scale, g.clientX, g.clientY); }
+    });
+    light.addEventListener('gestureend', (e) => e.preventDefault());
+
+    const resetDrag = () => {
+      swipeY = null;
+      smooth(true);
+      light.style.removeProperty('--fade');
+      lightImg.style.transform = '';
+    };
+    const startPan = (x: number, y: number) => { pan = { x, y, tx, ty }; light.classList.add('is-panning'); };
+    function startPinch() {
+      const [a, b] = [...touches.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, scale, tx, ty };
+    }
+
+    // Одно окно на все жесты: 2 пальца — приближение, 1 палец или мышь на приближенном фото — сдвиг,
+    // 1 палец на обычном фото — смахивание вверх, двойное нажатие — приблизить или вернуть как было
+    light.addEventListener('pointerdown', (e) => {
+      if ((e.target as Element).closest('[data-light-close]')) return;
+      smooth(false);
+      tapMoved = false;
+      downAt = { x: e.clientX, y: e.clientY };
+      if (e.pointerType === 'mouse') {
+        if (scale > 1) { light.setPointerCapture(e.pointerId); startPan(e.clientX, e.clientY); }
+        return;
+      }
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size === 2) {
+        if (swipeY !== null) resetDrag();
+        smooth(false);
+        pan = null;
+        startPinch();
+      } else if (touches.size === 1) {
+        if (scale > 1) startPan(e.clientX, e.clientY);
+        else { swipeY = e.clientY; swipeT = e.timeStamp; }
+      }
+    });
+
+    light.addEventListener('pointermove', (e) => {
+      if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 10) tapMoved = true;
+      if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pinch && touches.size >= 2) {
+        const [a, b] = [...touches.values()];
+        const c = center();
+        const x = (a.x + b.x) / 2, y = (a.y + b.y) / 2;
+        const px = (pinch.x - c.x - pinch.tx) / pinch.scale, py = (pinch.y - c.y - pinch.ty) / pinch.scale;
+        scale = limit(pinch.scale * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, 1, MAX_ZOOM);
+        tx = x - c.x - px * scale; ty = y - c.y - py * scale;
+        applyZoom();
+      } else if (pan) {
+        tx = pan.tx + e.clientX - pan.x; ty = pan.ty + e.clientY - pan.y;
+        applyZoom();
+      } else if (swipeY !== null) {
+        const dy = Math.min(0, e.clientY - swipeY);
+        lightImg.style.transform = `translateY(${dy}px)`;
+        light.style.setProperty('--fade', String(Math.max(.3, 1 + dy / 400)));
+      }
+    });
+
+    function pointerEnd(e: PointerEvent) {
+      touches.delete(e.pointerId);
+      if (touches.size > 0) { // убрали один палец из двух: оставшимся можно двигать фото
+        pinch = null;
+        const [t] = [...touches.values()];
+        if (scale > 1) startPan(t.x, t.y);
+        return;
+      }
+      pinch = null; pan = null;
+      light.classList.remove('is-panning');
+      if (scale < 1.02 && scale !== 1) { scale = 1; tx = ty = 0; smooth(true); applyZoom(); }
+      if (swipeY !== null) {
+        const dy = e.clientY - swipeY, fast = dy < -40 && e.timeStamp - swipeT < 250;
+        if (e.type === 'pointerup' && (dy < -100 || fast)) { swipeY = null; closeLight(true); return; }
+        if (dy < -2) resetDrag(); else swipeY = null;
+      }
+      // двойное нажатие
+      if (e.type !== 'pointerup' || tapMoved || closing || (e.target as Element).closest('[data-light-close]')) return;
+      if (e.timeStamp - lastTap < 300) {
+        lastTap = 0;
+        smooth(true);
+        if (scale > 1) { scale = 1; tx = ty = 0; applyZoom(); } else zoomAt(2.5, e.clientX, e.clientY);
+      } else lastTap = e.timeStamp;
+    }
+    light.addEventListener('pointerup', pointerEnd);
+    light.addEventListener('pointercancel', pointerEnd);
+  }
+</script>

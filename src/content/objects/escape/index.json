@@ -1,0 +1,13 @@
+{
+  "title": "Ресторан Escape",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Установка витражей Alutech F50, нержавеющих панелей, двери RAICO серии FRAME+ 75DI, подъёмно-раздвижные двери наклонного типа RAICO серии SLIFT, заградительные стёкла с применением технологии керамической печати.",
+  "photos": [
+    "/src/content/objects/escape/01.jpg",
+    "/src/content/objects/escape/02.jpg",
+    "/src/content/objects/escape/03.jpg"
+  ],
+  "published": true,
+  "order": 100
+}

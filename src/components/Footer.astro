@@ -1,0 +1,91 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+// В подвале — полный логотип с подписью «инженерные решения» (из брендбука); в шапке остаётся упрощённый
+import logo from '../assets/brand/logo-white-full.png';
+import { nav, site } from '../data/site';
+import { docs } from '../data/docs';
+const year = new Date().getFullYear();
+// В подвале после «О нас» — «Блог»: ведёт на страницу «События» (в шапке она во вкладке под «О нас»).
+// Внизу — обе политики (политика ПДн обязана быть в подвале) и «Настройки cookie»; согласия — по ссылкам у галочек в формах
+const footerDocs = docs.filter((d) => d.id === 'privacy' || d.id === 'cookies');
+const footerNav =nav.flatMap((i) => (i.href === '/about/' ? [i, { label: 'Блог', href: '/about/events/' }] : [i]));
+---
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a href="/" aria-label="Стекляника — на главную"><Image src={logo} alt="Стекляника — инженерные решения" width={400} /></a>
+      </div>
+
+      <nav class="footer__col" aria-label="Навигация в подвале">
+        <p class="footer__title">Разделы</p>
+        <ul class="footer__nav">
+          {footerNav.map((i) => <li><a href={i.href}>{i.label}</a></li>)}
+        </ul>
+      </nav>
+
+      <div class="footer__col">
+        <p class="footer__title">Контакты</p>
+        <ul class="footer__contacts">
+          <li><a href={site.phoneHref}><Icon name="phone" size={14} />{site.phone}</a></li>
+          <li><a href={`mailto:${site.email}`}><Icon name="mail" size={14} />{site.email}</a></li>
+          <li><a href={site.vk} target="_blank" rel="noopener"><Icon name="vk" size={14} />Мы в VK</a></li>
+          <li class="footer__addr"><Icon name="pin" size={14} />{site.address}</li>
+        </ul>
+        <button type="button" class="btn footer__btn" data-lead="Обратная связь">Обратная связь <Icon name="arrow-right" /></button>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© {year} {site.legalName}. Все права защищены.</p>
+      <div class="footer__bottom-right">
+        <nav class="footer__docs" aria-label="Документы">
+          {footerDocs.map((d) => <a href={d.href}>{d.label}</a>)}
+          <button type="button" data-cookie-settings>Настройки cookie</button>
+        </nav>
+        <a href="#top" class="icon-btn icon-btn--light footer__up" aria-label="Наверх"><Icon name="arrow-up" /></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer { background: var(--footer); color: rgba(251,253,255,.8); }
+  .footer__top {
+    display: grid; grid-template-columns: 1.65fr 1fr 1.25fr; gap: 40px;
+    padding: 56px 0 58px; border-bottom: 1px solid rgba(251,253,255,.12);
+  }
+  .footer__brand img { width: 190px; height: auto; }
+  .footer__title { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: rgba(251,253,255,.45); margin: 3px 0 22px; }
+  .footer__nav { display: grid; gap: 13px; }
+  .footer__nav a { font-weight: 500; font-size: 12px; letter-spacing: .17em; text-transform: uppercase; color: #fbfdff; transition: color .2s; }
+  .footer__nav a:hover { color: var(--brand-pastel); }
+  .footer__contacts { display: grid; gap: 14px; font-size: 15px; }
+  .footer__contacts a, .footer__addr { display: inline-flex; align-items: center; gap: 9px; color: rgba(251,253,255,.85); transition: color .2s; }
+  .footer__contacts a:hover { color: #fbfdff; }
+  .footer__contacts svg { color: rgba(251,253,255,.35); flex: none; }
+  .footer__addr { font-size: 13px; color: rgba(251,253,255,.55); align-items: flex-start; }
+  .footer__addr svg { margin-top: 3px; }
+  .footer__btn { margin-top: 24px; --btn-bg: var(--brand-mint); --btn-bd: var(--brand-mint); font-size: 11px; min-height: 44px; }
+  .footer__btn:hover { --btn-bg: var(--brand-pastel); --btn-bd: var(--brand-pastel); --btn-fg: var(--brand-moss); }
+  .footer__bottom { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; font-size: 15px; color: rgba(251,253,255,.55); }
+  .footer__bottom-right { display: flex; align-items: center; gap: 18px; font-size: 11px; }
+  .footer__bottom-right a:not(.icon-btn):hover { color: #fbfdff; }
+  .footer__docs { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px 18px; }
+  .footer__docs button { color: inherit; font: inherit; cursor: pointer; transition: color .2s; }
+  .footer__docs a, .footer__docs button { transition: color .2s; }
+  .footer__docs button:hover { color: #fbfdff; }
+  .footer__up { width: 32px; height: 32px; border-color: rgba(251,253,255,.2); }
+
+  @media (max-width: 900px) {
+    .footer__top { grid-template-columns: 1fr 1fr; }
+    .footer__brand { grid-column: 1 / -1; }
+  }
+  @media (max-width: 560px) {
+    .footer__top { grid-template-columns: 1fr; gap: 32px; padding-top: 44px; }
+    .footer__bottom { flex-direction: column-reverse; align-items: flex-start; font-size: 13px; }
+    .footer__bottom-right { width: 100%; justify-content: space-between; align-items: flex-end; }
+    .footer__docs { flex-direction: column; align-items: flex-start; }
+  }
+</style>

@@ -1,0 +1,17 @@
+{
+  "title": "Клиника Садко",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Внутренние перегородки «ПЕТРОЛЮМ», стёкла матированные 5 мм закалённые.",
+  "photos": [
+    "/src/content/objects/sadko/01.jpg",
+    "/src/content/objects/sadko/02.jpg",
+    "/src/content/objects/sadko/03.jpg",
+    "/src/content/objects/sadko/04.jpg",
+    "/src/content/objects/sadko/05.jpg",
+    "/src/content/objects/sadko/06.jpg",
+    "/src/content/objects/sadko/07.jpg"
+  ],
+  "published": true,
+  "order": 150
+}

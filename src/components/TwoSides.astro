@@ -1,0 +1,84 @@
+---
+// Сравнение двух сторон сотрудничества (страницы аудиторий): два одинаковых вертикальных блока рядом —
+// «Что обеспечиваем мы» и «Что получаете вы». Нумерация 01–03 в обоих блоках одинаковая; пункты идут с обычным
+// одинаковым отступом (по линии между блоками не выравниваем — иначе в одном из блоков появляются пустоты). Блоки одной высоты.
+// Блоки — «стекло» на мятном фоне: первый светлый, второй тёмный (мох) — чтобы две стороны читались раздельно.
+// На телефоне блоки идут друг под другом: сначала первый целиком, потом второй.
+interface Item { title: string; text: string }
+interface Props {
+  title: string;
+  sides: { title: string; items: Item[] }[];
+  id?: string; // якорь секции (для кнопки «вниз» на первом экране)
+}
+const { title, sides, id } = Astro.props;
+---
+<section class="section sides-sec" id={id}>
+  <div class="pattern sides-sec__pattern"></div>
+  <div class="container">
+   <div class="sides-sec__wrap">
+    <h2 class="h2 sides-sec__title reveal">{title}</h2>
+    <div class="sides">
+      {sides.map((s, i) => (
+        <article class:list={['sides__card reveal', { 'sides__card--dark': i === 1 }]} style={`transition-delay:${i * 120}ms`}>
+          <h3 class="sides__head">{s.title}</h3>
+          <ol class="sides__list">
+            {s.items.map((it, n) => (
+              <li class="sides__item">
+                <span class="sides__num">{String(n + 1).padStart(2, '0')}</span>
+                <div>
+                  <h4 class="sides__name">{it.title}</h4>
+                  <p class="sides__text">{it.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </article>
+      ))}
+    </div>
+   </div>
+  </div>
+</section>
+
+<style>
+  /* фон — мятный (пастельно-бирюзовый гуще обычного) с тёмным паттерном: на нём видно «стекло» блоков */
+  .sides-sec { background: linear-gradient(135deg, rgba(153,186,184,.62) 0%, rgba(153,186,184,.34) 55%, rgba(153,186,184,.5) 100%), var(--white); }
+  .sides-sec__pattern { opacity: .07; } /* тёмный паттерн из global.css — растянут на всю секцию (cover), без полей */
+  /* заголовок и блоки — чуть уже контейнера, по центру: блоки вытянуты вертикально */
+  .sides-sec__wrap { position: relative; max-width: 1040px; margin-inline: auto; }
+  .sides-sec__title { text-align: center; }
+  .sides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(12px, 1.8vw, 28px); margin-top: clamp(28px, 3vw, 44px); }
+  /* стекло: полупрозрачная заливка + размытие фона + светлая кромка */
+  .sides__card {
+    padding: clamp(28px, 3vw, 48px) clamp(24px, 2.8vw, 46px) clamp(20px, 2vw, 32px);
+    border-radius: 9px; border: 1px solid rgba(251,253,255,.7);
+    background: linear-gradient(150deg, rgba(251,253,255,.72), rgba(251,253,255,.42));
+    -webkit-backdrop-filter: blur(16px) saturate(1.2); backdrop-filter: blur(16px) saturate(1.2);
+    box-shadow: 0 30px 60px -34px rgba(61,74,71,.45), inset 0 1px 0 rgba(251,253,255,.9);
+  }
+  /* второй блок («что получаете вы») — тёмное стекло «Зелёного мха» */
+  .sides__card--dark {
+    border-color: rgba(251,253,255,.16);
+    background: linear-gradient(150deg, rgba(61,74,71,.9), rgba(61,74,71,.72));
+    box-shadow: 0 30px 60px -30px rgba(61,74,71,.7), inset 0 1px 0 rgba(251,253,255,.14);
+  }
+  .sides__head {
+    padding-bottom: clamp(18px, 1.6vw, 26px); border-bottom: 1.5px solid var(--brand-moss);
+    font-weight: 700; font-size: clamp(20px, 1.6vw, 28px); line-height: 1.25; text-transform: uppercase; letter-spacing: .01em; color: var(--ink);
+  }
+  .sides__item { display: grid; grid-template-columns: clamp(40px, 3.4vw, 56px) minmax(0, 1fr); align-items: start; padding-block: clamp(20px, 2vw, 30px) 0; }
+  .sides__item:last-child { padding-bottom: clamp(8px, 1vw, 16px); }
+  .sides__num { font-weight: 700; font-size: clamp(15px, 1.1vw, 18px); line-height: 1.35; letter-spacing: .04em; color: var(--brand-mint); font-variant-numeric: tabular-nums; }
+  .sides__name { font-weight: 700; font-size: clamp(16px, 1.15vw, 19px); line-height: 1.35; color: var(--ink); }
+  .sides__text { margin-top: 8px; font-size: clamp(14px, .95vw, 16px); line-height: 1.6; color: var(--ink); opacity: .82; }
+  /* тексты в тёмном блоке — светлые */
+  .sides__card--dark .sides__head { color: var(--white); border-bottom-color: rgba(251,253,255,.55); }
+  .sides__card--dark .sides__name { color: var(--white); }
+  .sides__card--dark .sides__text { color: var(--white); opacity: .78; }
+  .sides__card--dark .sides__num { color: var(--brand-pastel); }
+
+  @media (max-width: 760px) {
+    .sides-sec__title { text-align: left; }
+    .sides { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .sides__item { grid-template-columns: 40px minmax(0, 1fr); }
+  }
+</style>

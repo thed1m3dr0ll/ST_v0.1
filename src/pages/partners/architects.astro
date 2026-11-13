@@ -1,0 +1,85 @@
+---
+// «Архитекторам и дизайнерам» (/partners/architects/) — страница аудитории, открывается с карточки на «Партнерам».
+// Устроена как «Девелоперам»: светлый первый экран (текст + фото-трапеция, шапка сразу залита) →
+// «Материалы для воплощения идей» (вкладки «Стекло» / «Алюминий», стопки карточек) →
+// «Решения для разных пространств» (3 карточки со страницы «Услуги» + кнопка на «Объекты») →
+// «Реализованные объекты» (карусель, по одному объекту каждой категории) → светлая полоса «Свяжитесь с нами» с фото → подвал.
+// Фото — node tools/prep-architects.cjs (src/assets/architects).
+import type { ImageMetadata } from 'astro';
+import Base from '../../layouts/Base.astro';
+import SplitHero from '../../components/SplitHero.astro';
+import Materials from '../../components/Materials.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import ServiceCard from '../../components/ServiceCard.astro';
+import Icon from '../../components/Icon.astro';
+import Projects from '../../components/home/Projects.astro';
+import ObjectModal from '../../components/ObjectModal.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { projects, typeLabels } from '../../data/projects';
+import { services } from '../../data/services';
+import heroImg from '../../assets/architects/hero.jpg';
+// Фото для полосы «Свяжитесь с нами» — ресторан Escape (складчатая кровля и стеклянный фасад)
+import ctaImg from '../../assets/architects/cta-escape.jpg';
+
+// Фото «Интерьерных перегородок» здесь своё — клиника «Садко», DSC06128 (на «Услугах» другой кадр)
+import partitionsImg from '../../assets/architects/partitions.jpg';
+
+// Карточки берутся со страницы «Услуги»; label и img — подпись и фото на этой странице, если отличаются
+const solutions: { service: string; label?: string; img?: ImageMetadata }[] = [
+  { service: 'Фасадное остекление' },
+  { service: 'Перегородки', label: 'Интерьерные перегородки', img: partitionsImg },
+  { service: 'Ограждения' },
+];
+const cards = solutions.map(({ service, label, img }) => ({ title: label ?? service, img: img ?? services.find((s) => s.title === service)?.img }));
+
+// «Реализованные объекты» — по одному объекту каждой категории: первый по порядку на странице «Объекты»
+// (жилой комплекс, частный дом, коммерческий, специальное решение). Поменять объект — поднять его в порядке в админке.
+const examples = (Object.keys(typeLabels) as (keyof typeof typeLabels)[])
+  .map((t) => projects.find((p) => p.type === t))
+  .filter((p) => p !== undefined);
+---
+<Base solidHeader title="Архитекторам и дизайнерам" description="«Стекляника» реализует нестандартные идеи в стекле и алюминии, находя техническое воплощение для архитектурных замыслов любой сложности.">
+  <SplitHero
+    title="Архитекторам и дизайнерам"
+    text="ООО «Стекляника» — компания, которая реализует нестандартные идеи в стекле и алюминии, находя техническое воплощение для архитектурных замыслов любой сложности."
+    image={heroImg}
+    alt="Архитектор работает с чертежами у окна с видом на здание со стеклянным фасадом"
+    crumbs={[{ label: 'Партнерам', href: '/partners/' }, { label: 'Архитекторам и дизайнерам' }]}
+    position="30% 50%"
+    down="#materials"
+  />
+
+  <Materials id="materials" />
+
+  <section class="section solutions">
+    <div class="pattern pattern--fade-right"></div>
+    <div class="container">
+      <SectionHead title={'Решения для разных\nпространств'}text="От функционального зонирования до выразительных архитектурных деталей">
+        <a href="/projects/" class="btn btn--outline">Другие объекты <Icon name="arrow-right" /></a>
+      </SectionHead>
+      <ul class="solutions__grid reveal">
+        {cards.map((s) => <li><ServiceCard title={s.title} img={s.img} href="/services/" /></li>)}
+      </ul>
+    </div>
+  </section>
+
+  <Projects title="Реализованные объекты" text="" items={examples} rounded />
+
+  <CtaBand
+    title="Свяжитесь с нами"
+    text="Расскажите о замысле — подберём стекло и профильные системы, проработаем узлы и предложим техническое решение, которое сохранит архитектурную идею."
+    button="Обсудить проект"
+    light
+    image={ctaImg}
+    position="50% 50%"
+  />
+
+  <ObjectModal projects={examples} />
+</Base>
+
+<style>
+  .solutions .container { position: relative; }
+  .solutions__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 40px; }
+  @media (max-width: 1024px) { .solutions__grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) { .solutions__grid { grid-template-columns: 1fr; margin-top: 28px; } }
+</style>

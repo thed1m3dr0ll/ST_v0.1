@@ -1,0 +1,521 @@
+---
+// «О нас». Материалы первых трёх экранов — папка «для сайта/для страницы о нас»
+// (фото подготовлены скриптом tools/prep-about.cjs), остальные экраны — по макету «Страница о компании».
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Steps from '../components/home/Steps.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import { facts } from '../data/site';
+
+import heroImg from '../assets/about/hero-roof.jpg';
+import directorImg from '../assets/about/director.jpg';
+import timelineImg from '../assets/about/timeline-plotnichny.jpg'; // копия «Объекты → ЖК Плотничный», фото 02
+// Фото на обороте блоков таймлайна — готовит tools/prep-timeline.cjs из папки «для сайта/таймлайн».
+import tlLeto2020 from '../assets/about/timeline/leto-2020.jpg';
+import tlOsen2020 from '../assets/about/timeline/osen-2020.jpg';
+import tlNotary from '../assets/about/timeline/notarialnaya-palata.jpg';
+import tlGes2 from '../assets/about/timeline/ges-2.jpg';
+import tlNorkemikal from '../assets/about/timeline/norkemikal.jpg';
+import tlVesna1 from '../assets/about/timeline/vesna-2023-1.jpg';
+import tlVesna2 from '../assets/about/timeline/vesna-2023-2.jpg';
+import tlVesna3 from '../assets/about/timeline/vesna-2023-3.jpg';
+import tlLogistika from '../assets/about/timeline/logistika.jpg';
+import type { ImageMetadata } from 'astro';
+
+// «Стекляника сегодня»: первые три факта общие с главной, вместо площадей витражей и окон — штат.
+const todayFacts = [...facts.slice(0, 3), { icon: 'users', prefix: 'около', value: '100', label: 'сотрудников в штате' }];
+
+// Тексты — дословно с картинки «текст для таймлайна»; дата разбита на крупный год и подпись над ним.
+// Чётные этапы — в верхнем ряду ленты, нечётные — в нижнем. Заливка «мхом» — через один, начиная с первого (мох, рамка, мох…).
+// photos — фото этапа: стрелка в углу раскрывает блок в фото (несколько — сменяются сами), потом он сворачивается обратно.
+// pos — какую часть фото оставить, если оно чуть не влезает в рамку (object-position).
+// ratio — единые пропорции рамки для всех фото блока (иначе рамка подстраивается под каждое фото).
+type Photo = { src: ImageMetadata; alt: string; pos?: string };
+const timeline: { season?: string; year: string; icon: string; title: string; text?: string; list?: { name: string; text: string }[]; photos?: Photo[]; ratio?: number }[] = [
+  { season: 'весна', year: '2020', icon: 'office', title: 'Основание компании:', text: 'начали работу в период пандемии, первые проекты, маленький штат сотрудников, офис — один кабинет' },
+  {
+    season: 'лето', year: '2020', icon: 'users', title: 'Формирование команды:', text: 'появились бухгалтер и офис-менеджер, инженер-конструктор, прораб, специалист по снабжению. Компания начала трансформироваться в полноценную организацию',
+    photos: [{ src: tlLeto2020, alt: 'Команда «Стекляники» на совещании в офисе' }],
+  },
+  {
+    season: 'осень', year: '2020', icon: 'hard-hat', title: 'Набор собственной монтажной бригады:', text: 'отказались от сотрудничества с наёмными рабочими и сформировали собственную команду из четырёх специалистов',
+    photos: [{ src: tlOsen2020, alt: 'Монтажник «Стекляники» у стеклопакета на вакуумном захвате', pos: '50% 62%' }],
+  },
+  {
+    season: 'начало', year: '2021', icon: 'building', title: 'Первые сложные объекты:', list: [
+      { name: 'Нотариальная палата', text: 'Витражи высотой почти 8 метров на системе RAICO' },
+      { name: 'ГЭС-2', text: 'Зенитные фонари над светодиодами в конструкции тротуаров' },
+      { name: 'Норкемикал', text: 'Сложная реконструкция зенитной кровли' },
+    ],
+    photos: [
+      { src: tlNotary, alt: 'Нотариальная палата: витраж высотой почти 8 метров' },
+      { src: tlGes2, alt: 'ГЭС-2: зенитные фонари в конструкции тротуара' },
+      { src: tlNorkemikal, alt: 'Норкемикал: реконструкция зенитной кровли' },
+    ],
+  },
+  { season: 'конец — начало', year: '2021–2022', icon: 'box', title: 'Собственный склад:', text: 'открыли первый склад и сняли помещение под производство' },
+  {
+    season: 'весна', year: '2023', icon: 'factory', title: 'Собственное производство:', text: 'переехали на новую производственную площадку, закупили новые рабочие станки',
+    photos: [
+      { src: tlVesna1, alt: 'Производственный цех «Стекляники»' },
+      { src: tlVesna2, alt: 'Сотрудник за станком на производстве' },
+      { src: tlVesna3, alt: 'Обработка профиля на станке', pos: '50% 30%' }, // в кадре голова и руки
+    ],
+    ratio: 1.5,
+  },
+  {
+    year: '2024', icon: 'truck', title: 'Собственная логистика:', text: 'организовали первый корпоративный транспорт',
+    photos: [{ src: tlLogistika, alt: 'Корпоративный грузовик «Стекляники»', pos: '50% 62%' }],
+  },
+  { year: '2025', icon: 'trend', title: 'Рост количества проектов,', text: 'увеличение выручки, расширение штата сотрудников' },
+];
+
+// Змейка в ленте (компьютер): y — высота блока (0 — прижат к верху ленты, 1 — к низу), g — расстояние до предыдущего
+// блока в «шагах» --tl-gap. Значения нарочно разные, чтобы линия петляла неровно; последнее g — до хвоста ленты.
+// Первый блок прижат к низу: линия из точки под заголовком идёт вправо-вниз и не задевает его.
+// Промежутки не меньше ~1.5 шага — иначе на большом перепаде высот волна превращается почти в вертикальную прямую.
+const ribbon = { y: [1, 0.12, 0.8, 0.06, 0.88, 0.2, 0.82, 0.25], g: [0, 1.6, 2, 1.5, 2.1, 1.7, 1.9, 1.6, 1.8] };
+---
+<Base title="О нас" description="Стекляника — инженерные решения для современной архитектуры: проектирование, производство и монтаж светопрозрачных конструкций с 2020 года.">
+  <PageHero
+    title="О нас"
+    text="Создаём современные светопрозрачные конструкции, которые делают пространство функциональным, комфортным и эстетичным."
+    image={heroImg}
+    crumbs={[{ label: 'О нас' }]}
+    tall
+    down="#history"
+  />
+
+  <!-- История -->
+  <section class="section section--white history" id="history">
+    <div class="pattern pattern--fade-right"></div>
+    <div class="container history__grid">
+      <div class="history__text reveal">
+        <p class="eyebrow">Наша история</p>
+        <h2 class="h2">От идей к большим<br />инженерным проектам</h2>
+        <p class="lead">«Стекляника» начала свою работу в 2020 году. На протяжении нескольких лет основатель, Гаврюшин Александр Сергеевич, выстраивал систему работы, набирал в команду опытных специалистов, чтобы создать фундамент для дальнейшего роста компании. Со временем у нас появились собственные производство, склад, транспорт и монтажная бригада.</p>
+        <p class="lead">Сейчас «Стекляника» — компания, которая организует полный цикл работ от проектирования до логистики и установки. Благодаря команде единомышленников мы продолжаем расти и двигаться к новым результатам.</p>
+      </div>
+      <figure class="history__photo reveal">
+        <Image src={directorImg} alt="Гаврюшин Александр Сергеевич, основатель компании «Стекляника»" widths={[480, 800, 1200]} sizes="(max-width: 640px) 100vw, 460px" />
+      </figure>
+    </div>
+  </section>
+
+  <!-- Путь развития -->
+  <section class="timeline" id="path" data-tl>
+    <div class="timeline__pin" data-tl-pin>
+      <div class="timeline__pattern" data-tl-pattern></div>
+      <div class="timeline__photo" data-tl-photo aria-hidden="true">
+        <Image src={timelineImg} alt="" widths={[640, 1000, 1400]} sizes="(max-width: 1024px) 100vw, 50vw" />
+      </div>
+      <div class="timeline__track" data-tl-track>
+        <div class="timeline__head">
+          <p class="eyebrow">Ключевые этапы</p>
+          <h2 class="h2">Путь развития</h2>
+          <span class="timeline__start" data-tl-node></span>
+        </div>
+        <ol class="timeline__list">
+          {timeline.map((t, i) => (
+            <li class:list={['timeline__item', i % 2 ? 'is-bottom' : 'is-top', { 'is-filled': i % 2 === 0 }]} style={`--g:${ribbon.g[i]}`} data-y={ribbon.y[i]} data-tl-node>
+              <span class="timeline__badge"><Icon name={t.icon} size={21} stroke={1.25} /></span>
+              <p class="timeline__date" data-tl-rail>
+                {t.season && <span>{t.season}</span>}
+                <b>{t.year}</b>
+              </p>
+              <p class="timeline__title">{t.title}</p>
+              {t.text && <p>{t.text}</p>}
+              {t.list && (
+                <ul class="timeline__sub">
+                  {t.list.map((l) => <li><b>{l.name}</b>{l.text}</li>)}
+                </ul>
+              )}
+              {t.photos && (
+                <>
+                  <button class="timeline__flip" type="button" aria-label={t.photos.length > 1 ? 'Показать фото объектов' : 'Показать фото'} data-tl-flip>
+                    <Icon name="arrow-right" size={15} stroke={1.5} />
+                  </button>
+                  <div class="timeline__back" data-tl-back data-ratio={t.ratio}>
+                    {t.photos.map((p, k) => (
+                      <Image class:list={['timeline__shot', { 'is-cur': k === 0 }]} src={p.src} alt={p.alt} widths={[600, 900, 1300, 1800]} sizes="(max-width: 1024px) 100vw, 560px" quality={90} style={p.pos ? `object-position:${p.pos}` : undefined} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+          <li class="timeline__end" style={`--g:${ribbon.g[timeline.length]}`} data-tl-node><span class="timeline__fade"></span>Двигаемся дальше вместе</li>
+        </ol>
+        <svg class="timeline__lines" data-tl-svg aria-hidden="true"></svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- Сегодня -->
+  <section class="section section--white today">
+    <div class="container">
+      <SectionHead eyebrow="Стекляника сегодня" title={'Надёжный партнёр\nдля ваших проектов'} text="Мы объединяем современные технологии, профессиональную команду и собственные ресурсы, чтобы реализовывать проекты любой сложности." />
+      <ul class="today__grid">
+        {todayFacts.map((f, i) => (
+          <li class="today__card reveal" style={`transition-delay:${i * 60}ms`}>
+            <Icon name={f.icon} size={34} stroke={1.25} />
+            <div><b>{f.prefix && <small>{f.prefix} </small>}{f.value}</b><span>{f.label}</span></div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <Steps soft />
+  <CtaBand title="Помогаем создавать пространства для жизни, работы и вдохновения" button="Смотреть наши объекты" href="/projects/" />
+</Base>
+
+<style>
+  .history__grid { position: relative; display: grid; grid-template-columns: 1fr 460px; gap: clamp(40px, 6vw, 96px); align-items: center; }
+  .history__text { display: grid; gap: 20px; padding-left: 20px; border-left: 1.25px solid var(--line); }
+  .history__text .lead { max-width: 620px; }
+  .history__text .lead + .lead { margin-top: -6px; }
+  .history__photo { margin: 0; aspect-ratio: 1; overflow: hidden; border-radius: 9px; box-shadow: 0 24px 48px -28px rgba(22,39,41,.45); }
+  .history__photo img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* Путь развития — блоки по образцу пользователя: через пару — рамка / заливка «мхом», крупный год, кружок-значок в углу.
+     Одна линия выходит из блока и входит в следующий (волной; её рисует скрипт внизу), при прокрутке прорисовывается.
+     По умолчанию (телефон, планшет, низкие окна, нет JS) — вертикально, блоки «лесенкой» слева/справа.
+     На компьютере скрипт ставит .is-h: экран «залипает» под шапкой, и прокрутка страницы везёт ленту влево. */
+  .timeline { --tl-gap: clamp(44px, 3.4vw, 60px); position: relative; padding-block: var(--section-y); background: linear-gradient(180deg, rgba(153,186,184,.3), rgba(153,186,184,.16)), var(--bg); }
+  .timeline__pin { width: 100%; max-width: calc(var(--container) + var(--gutter) * 2); margin-inline: auto; padding-inline: var(--gutter); }
+  .timeline__track { position: relative; }
+  .timeline__head { display: grid; gap: 14px; max-width: 720px; margin-inline: auto; }
+  /* Фон: паттерн бренда двумя «пятнами» с мягкими краями (картинка не бесшовная, поэтому не плиткой). */
+  .timeline__pattern { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .timeline__pattern::before, .timeline__pattern::after { content: ''; position: absolute; width: min(110%, 760px); aspect-ratio: 1230 / 1278; background: url('/images/pattern-dark.webp') center / contain no-repeat; opacity: .05; -webkit-mask-image: radial-gradient(closest-side, #000 55%, transparent); mask-image: radial-gradient(closest-side, #000 55%, transparent); }
+  .timeline__pattern::before { left: -18%; top: 4%; }
+  .timeline__pattern::after { right: -22%; bottom: 6%; }
+  /* Фото объекта в начале: высветлено «Бумагой», чтобы заголовок мхом читался, и растворяется в фоне секции
+     (на телефоне — вниз, в ленте — вправо; в ленте ещё и уезжает с ней и гаснет — это делает скрипт). */
+  .timeline__photo { position: absolute; left: 0; right: 0; top: 0; height: 460px; pointer-events: none; -webkit-mask-image: linear-gradient(180deg, #000 35%, transparent); mask-image: linear-gradient(180deg, #000 35%, transparent); }
+  .timeline__photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; filter: saturate(.7); }
+  .timeline__photo::after { content: ''; position: absolute; inset: 0; background: rgba(251,253,255,.4); }
+  .is-h .timeline__photo::after { background: rgba(251,253,255,.5); }
+  .timeline__head .eyebrow { font-weight: 500; color: var(--ink); } /* мятный мелкий текст на фото теряется */
+  .timeline__start { display: none; width: 12px; height: 12px; border-radius: 50%; background: var(--brand-moss); box-shadow: 0 0 0 5px rgba(61,74,71,.12); }
+
+  .timeline__list { display: flex; flex-direction: column; gap: 64px; max-width: 720px; margin: 56px auto 0; }
+  .timeline__item { position: relative; z-index: 1; box-sizing: border-box; width: 86%; display: flex; flex-direction: column; gap: 6px; padding: 22px 22px 20px; border: 1.5px solid var(--brand-moss); border-radius: 9px; background: var(--bg); font-size: 13px; line-height: 1.5; color: var(--text); transition: opacity .7s var(--ease), transform .7s var(--ease), box-shadow .35s; }
+  .timeline__item.is-bottom { align-self: flex-end; }
+  .timeline__item.is-filled { background: var(--brand-moss); color: rgba(251,253,255,.78); }
+  .timeline__badge { position: absolute; top: -23px; right: 18px; display: grid; place-items: center; width: 46px; height: 46px; border: 1.5px solid var(--brand-moss); border-radius: 50%; background: var(--bg); color: var(--brand-moss); }
+  .is-filled .timeline__badge { border: 3px solid var(--brand-paper); background: var(--brand-moss); color: var(--brand-paper); box-shadow: 0 0 0 1.5px var(--brand-moss); }
+  .timeline__date { display: grid; gap: 4px; margin-bottom: 6px; color: var(--ink); }
+  .timeline__date span { font-size: 11px; line-height: 1.2; letter-spacing: .08em; text-transform: uppercase; color: var(--text); }
+  .timeline__date b { font-weight: 300; font-size: clamp(30px, 2.2vw, 38px); line-height: 1; letter-spacing: -.01em; }
+  .timeline__title { font-weight: 600; font-size: 14px; line-height: 1.35; color: var(--ink); }
+  .timeline__sub { display: grid; gap: 8px; margin-top: 2px; }
+  .timeline__sub b { display: block; font-weight: 600; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); }
+  .is-filled .timeline__date, .is-filled .timeline__title, .is-filled .timeline__sub b { color: var(--brand-paper); }
+  .is-filled .timeline__date span { color: rgba(251,253,255,.7); }
+  @media (hover: hover) {
+    .timeline__item:hover { transform: translateY(-4px); box-shadow: 0 26px 40px -28px rgba(61,74,71,.6); }
+  }
+
+  /* Фото этапа. Стрелка — в правом нижнем углу блока. По нажатию поверх блока раскрывается рамка с фото:
+     она вырастает из самого блока до размера под пропорции снимка (чуть шире/выше блока — чтобы фото не резалось),
+     при смене фото плавно меняет размер, в конце сворачивается обратно в блок. Рамка всегда накрывает блок целиком,
+     поэтому линии упираются в неё и разрывов не видно. Размеры и анимацию задаёт скрипт. */
+  .timeline__flip { position: relative; align-self: flex-end; display: grid; place-items: center; width: 32px; height: 32px; margin: 4px -8px -6px 0; padding: 0; border: 1.5px solid var(--brand-moss); border-radius: 50%; background: var(--bg); color: var(--brand-moss); cursor: pointer; transition: background .25s var(--ease), color .25s var(--ease), transform .25s var(--ease); }
+  .timeline__flip :global(svg) { transform: rotate(45deg); }
+  .is-filled .timeline__flip { border-color: var(--brand-paper); background: transparent; color: var(--brand-paper); }
+  .timeline__flip:hover, .timeline__flip:focus-visible { background: var(--brand-moss); color: var(--brand-paper); transform: scale(1.08); }
+  .is-filled .timeline__flip:hover, .is-filled .timeline__flip:focus-visible { background: var(--brand-paper); color: var(--brand-moss); }
+  .timeline__back { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 3; overflow: hidden; border-radius: 9px; background: var(--brand-moss); box-shadow: 0 34px 60px -30px rgba(22,39,41,.6); visibility: hidden; cursor: pointer; }
+  .timeline__back.is-morph { transition: left .45s var(--ease), top .45s var(--ease), width .45s var(--ease), height .45s var(--ease); }
+  .timeline__item.is-open { z-index: 6; }
+  .timeline__item.is-open .timeline__back { visibility: visible; }
+  .timeline__badge { z-index: 2; transition: opacity .3s; }
+  .timeline__item.is-open .timeline__badge { opacity: 0; }
+  .timeline__back :global(img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .45s var(--ease); }
+  .timeline__back :global(img.is-cur) { opacity: 1; }
+
+  .timeline__end { display: flex; flex-direction: column; align-items: center; gap: 14px; align-self: flex-start; margin-left: 16%; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text); transition: opacity .7s var(--ease); }
+  .timeline__fade { width: 2px; height: 72px; background: linear-gradient(180deg, var(--brand-moss), rgba(61,74,71,0)); }
+
+  .timeline__lines { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+  .timeline__lines :global(path) { fill: none; stroke: var(--brand-moss); stroke-width: 2; stroke-linecap: round; stroke-dasharray: 1; }
+
+  /* Пока линия не дошла до блока, он спрятан (только при работающем скрипте). */
+  .timeline.is-ready .timeline__item:not(.is-on) { opacity: 0; transform: translateY(18px); }
+  .timeline.is-ready .timeline__end:not(.is-on) { opacity: 0; }
+
+  /* Компьютер: лента вбок. Высоту секции (= высота экрана + длина ленты) задаёт скрипт. */
+  .timeline.is-h { padding-block: 0; }
+  .is-h .timeline__pin { position: sticky; top: 76px; display: flex; align-items: center; height: calc(100svh - 76px); max-width: none; padding: 0; overflow: clip; }
+  .is-h .timeline__track { display: flex; gap: var(--tl-gap); width: max-content; height: clamp(420px, calc(100svh - 76px - 160px), 520px); padding-inline: max(var(--gutter), calc((100vw - var(--container)) / 2)); will-change: transform; }
+  .is-h .timeline__head { flex: none; align-self: center; align-content: center; width: max-content; max-width: 440px; margin: 0; }
+  .is-h .timeline__pattern { right: auto; width: 130%; overflow: visible; will-change: transform; }
+  .is-h .timeline__pattern::before, .is-h .timeline__pattern::after { width: auto; height: 95%; }
+  .is-h .timeline__photo { right: auto; width: min(34vw, 640px); height: 100%; -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent); mask-image: linear-gradient(90deg, #000 40%, transparent); will-change: transform, opacity; }
+  .is-h .timeline__pattern::before { left: 14%; top: -18%; }
+  .is-h .timeline__pattern::after { right: 4%; bottom: -22%; }
+  .is-h .timeline__start { display: block; margin-top: 18px; }
+  .is-h .timeline__list { flex-direction: row; gap: 0; max-width: none; margin: 0; }
+  /* Высоту каждого блока (margin-top по data-y) ставит скрипт, расстояния между блоками — из --g. */
+  .is-h .timeline__item, .is-h .timeline__end { margin-left: calc(var(--g) * var(--tl-gap)); }
+  .is-h .timeline__item { flex: none; align-self: flex-start; width: clamp(270px, 19vw, 320px); }
+  .is-h .timeline__end { flex-direction: row; white-space: nowrap; }
+  .is-h .timeline__fade { width: 120px; height: 2px; background: linear-gradient(90deg, var(--brand-moss), rgba(61,74,71,0)); }
+  @media (prefers-reduced-motion: reduce) {
+    .timeline.is-ready .timeline__item:not(.is-on) { transform: none; }
+  }
+
+  /* Описание справа опущено так, чтобы верх его первой строки совпал с верхом заглавных букв заголовка:
+     38.5px — надзаголовок с отступом, .315em — от верха строки H2 до заглавных, 7.2px — то же у описания. */
+  @media (min-width: 1025px) {
+    .today :global(.sec-head__text) { padding-top: calc(38.5px - 7.2px + .315 * clamp(28px, 2.5vw, 48px)); }
+  }
+  .today__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 40px; }
+  /* Карточки выровнены по верху: первая строка цифр у всех на одной линии, даже если подпись переносится. */
+  .today__card { display: flex; align-items: flex-start; gap: 16px; padding: 22px 20px; border-radius: 9px; background: var(--green-900); color: #fff; transition: background .3s; }
+  .today__card:hover { background: #2a4644; }
+  .today__card svg { flex: none; color: var(--brand-pastel); }
+  .today__card b { display: block; font-size: 24px; line-height: 1.1; }
+  .today__card b small { font-weight: 400; font-size: 14px; }
+  .today__card span { display: block; margin-top: 4px; font-size: 12px; line-height: 1.3; color: rgba(255,255,255,.75); }
+
+  @media (max-width: 1180px) {
+    .history__grid { grid-template-columns: 1fr 340px; }
+  }
+  @media (max-width: 900px) {
+    .today__grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) {
+    .history__grid { grid-template-columns: 1fr; }
+    .history__photo { width: 100%; max-width: 420px; }
+    .today__card { flex-direction: column; }
+  }
+</style>
+<script>
+  // «Путь развития»: на широком и достаточно высоком экране — лента вбок, которую везёт прокрутка страницы;
+  // иначе — вертикальный список. В обоих режимах рисуем линию-волну от блока к блоку
+  // и прорисовываем её по мере прокрутки: «фронт» идёт вправо (лента) или вниз (список).
+  const section = document.querySelector<HTMLElement>('[data-tl]');
+  if (section) {
+    const pin = section.querySelector<HTMLElement>('[data-tl-pin]')!;
+    const track = section.querySelector<HTMLElement>('[data-tl-track]')!;
+    const svg = section.querySelector<SVGSVGElement>('[data-tl-svg]')!;
+    const nodes = [...section.querySelectorAll<HTMLElement>('[data-tl-node]')];
+    const items = [...section.querySelectorAll<HTMLElement>('.timeline__item, .timeline__end')];
+    const end = items[items.length - 1];
+    const pattern = section.querySelector<HTMLElement>('[data-tl-pattern]')!;
+    const photo = section.querySelector<HTMLElement>('[data-tl-photo]')!;
+    const wide = matchMedia('(min-width: 1025px) and (min-height: 600px)');
+    let horizontal = false, travel = 0, pinTop = 76;
+    let links: { path: SVGPathElement; from: number; to: number }[] = [];
+    let starts: number[] = [];
+
+    // Положение относительно ленты по offset-ам (на них не влияют transform-ы появления и сдвиг ленты).
+    const box = (el: HTMLElement) => {
+      let x = 0, y = 0, n: HTMLElement | null = el;
+      while (n && n !== track) { x += n.offsetLeft; y += n.offsetTop; n = n.offsetParent as HTMLElement | null; }
+      return { x, y, w: el.offsetWidth, h: el.offsetHeight };
+    };
+    // Точки входа/выхода: в ленте — боковые стороны на высоте года, в списке — низ/верх по центру.
+    const anchors = (el: HTMLElement) => {
+      const b = box(el);
+      const rail = el.querySelector<HTMLElement>('[data-tl-rail] b');
+      const ry = rail ? box(rail).y + rail.offsetHeight / 2 : b.y + b.h / 2;
+      return horizontal
+        ? { out: [b.x + b.w, ry], in: [b.x, ry] }
+        : { out: [b.x + b.w / 2, b.y + b.h], in: [b.x + b.w / 2, b.y] };
+    };
+    // Волна: линия выходит из блока и входит в следующий по ходу ленты, между ними — плавная S-образная кривая
+    // (управляющие точки на 90% пути вдоль ленты дают круглые «плечи» без острых углов).
+    const wave = (x0: number, y0: number, x1: number, y1: number) => {
+      if (horizontal) {
+        const k = (x1 - x0) * .9;
+        return `M${x0},${y0} C${x0 + k},${y0} ${x1 - k},${y1} ${x1},${y1}`;
+      }
+      const k = (y1 - y0) * .9;
+      return `M${x0},${y0} C${x0},${y0 + k} ${x1},${y1 - k} ${x1},${y1}`;
+    };
+
+    const layout = () => {
+      horizontal = wide.matches;
+      section.classList.toggle('is-h', horizontal);
+      track.style.transform = pattern.style.transform = photo.style.transform = photo.style.opacity = '';
+      if (horizontal) {
+        pinTop = parseFloat(getComputedStyle(pin).top) || 76;
+        travel = Math.max(0, track.offsetWidth - pin.clientWidth);
+        section.style.height = `${pin.offsetHeight + travel}px`;
+      } else {
+        section.style.height = '';
+      }
+      // Змейка: каждый блок на своей высоте (data-y — доля свободного места над ним).
+      for (const el of items.slice(0, -1)) {
+        el.style.marginTop = horizontal ? `${(track.clientHeight - el.offsetHeight) * Number(el.dataset.y)}px` : '';
+      }
+      // В ленте хвост «Двигаемся дальше вместе» — на 110px ниже или выше года последнего этапа (куда больше места),
+      // чтобы и последняя линия шла волной, а не прямой.
+      end.style.marginTop = '';
+      if (horizontal) {
+        const last = items[items.length - 2], rail = last.querySelector<HTMLElement>('[data-tl-rail] b')!;
+        const ry = box(rail).y + rail.offsetHeight / 2;
+        const y = ry < track.clientHeight / 2 ? ry + 110 : ry - 110;
+        end.style.marginTop = `${y - end.offsetHeight / 2 - box(end).y}px`;
+      }
+      svg.setAttribute('width', String(track.offsetWidth));
+      svg.setAttribute('height', String(track.offsetHeight));
+      const shown = nodes.filter((n) => n.offsetParent);
+      const axis = horizontal ? 0 : 1;
+      svg.replaceChildren();
+      links = shown.slice(1).map((n, i) => {
+        const a = anchors(shown[i]).out, b = anchors(n).in;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', wave(a[0], a[1], b[0], b[1]));
+        path.setAttribute('pathLength', '1');
+        svg.append(path);
+        return { path, from: a[axis] - 60, to: b[axis] + 10 };
+      });
+      starts = items.map((el) => { const b = box(el); return (horizontal ? b.x : b.y) + 40; });
+      update();
+    };
+
+    const update = () => {
+      let front: number;
+      if (horizontal) {
+        const top = section.getBoundingClientRect().top;
+        const p = travel ? Math.min(1, Math.max(0, (pinTop - top) / travel)) : 0;
+        track.style.transform = `translate3d(${-p * travel}px,0,0)`;
+        pattern.style.transform = `translate3d(${-p * .3 * pin.clientWidth}px,0,0)`; // паттерн едет медленнее ленты
+        // Фото уезжает вместе с заголовком и гаснет к середине первого экрана ленты.
+        photo.style.transform = `translate3d(${-p * travel}px,0,0)`;
+        photo.style.opacity = String(Math.max(0, 1 - (p * travel) / (pin.clientWidth * .5)));
+
+        const entry = Math.min(1, Math.max(0, (innerHeight - top) / (innerHeight * .75)));
+        front = p * travel + pin.clientWidth * entry; // линия дорисована до правого края экрана
+      } else {
+        front = innerHeight * .82 - track.getBoundingClientRect().top;
+      }
+      for (const l of links) {
+        const f = Math.min(1, Math.max(0, (front - l.from) / (l.to - l.from)));
+        l.path.style.strokeDashoffset = String(1 - f);
+      }
+      items.forEach((el, i) => el.classList.toggle('is-on', front > starts[i]));
+    };
+
+    // Фото этапа: стрелка → поверх блока раскрывается рамка с фото — вырастает из самого блока до пропорций снимка.
+    // Одно фото — 2 с, несколько — по 1,5 с каждое (рамка плавно подстраивается под каждое). Потом рамка сама
+    // сворачивается обратно в блок. Начали прокручивать страницу или нажали на фото — сворачивается сразу.
+    const list = section.querySelector<HTMLElement>('.timeline__list')!;
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    const OPEN = 520, CLOSE = 380, STEP = 1500, SINGLE = 2000;
+    const FULL = 'inset(0px 0px 0px 0px round 9px)';
+    const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    type Geo = { x: number; y: number; w: number; h: number };
+    type Run = { card: HTMLElement; panel: HTMLElement; shots: HTMLImageElement[]; i: number; timer: number; y: number; geo: Geo; closing: boolean };
+    let run: Run | null = null;
+
+    // Рамка под пропорции фото (или единые пропорции блока из data-ratio), но не меньше самого блока —
+    // так она накрывает и его, и концы линий. Размер сдержанный: шире блока не больше чем в 1,6 раза,
+    // выше — не больше 1,25 ширины блока (вертикальные фото чуть подрезаются, а не раскрываются во весь экран).
+    // Координаты — от левого верхнего угла блока; рамка не вылезает за край экрана ленты / колонки.
+    const fit = (card: HTMLElement, img: HTMLImageElement): Geo => {
+      const own = Number((img.parentElement as HTMLElement).dataset.ratio);
+      const a = own || (img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : 1.5);
+      const cw = card.offsetWidth, ch = card.offsetHeight;
+      const area = (horizontal ? pin : list).getBoundingClientRect();
+      const pad = horizontal ? 24 : 0;
+      const maxW = Math.max(cw, Math.min(horizontal ? cw * 1.6 : area.width, area.width - pad * 2));
+      // В списке (телефон, планшет) блок и так во всю колонку — там рамка не выше 1/1,2 ширины, т. е. всегда горизонтальная.
+      const maxH = Math.max(ch, horizontal ? Math.min(cw * 1.25, area.height - pad * 2) : Math.min(cw / 1.2, innerHeight * .6));
+      let w = Math.min(maxW, Math.max(cw * (horizontal ? 1.35 : 1), ch * a));
+      let h = w / a;
+      if (h > maxH) { h = maxH; w = Math.min(maxW, Math.max(cw, h * a)); }
+      h = Math.max(ch, h);
+      const c = card.getBoundingClientRect();
+      const clamp = (v: number, lo: number, hi: number) => (hi < lo ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, v)));
+      const sx = clamp(c.left + (cw - w) / 2, area.left + pad, area.right - pad - w);
+      const sy = horizontal ? clamp(c.top + (ch - h) / 2, area.top + pad, area.bottom - pad - h) : c.top + (ch - h) / 2;
+      // Но блок рамка накрывает всегда, даже если он сам у края экрана.
+      return { x: clamp(sx - c.left, cw - w, 0), y: clamp(sy - c.top, ch - h, 0), w, h };
+    };
+    const place = (r: Run) => {
+      r.geo = fit(r.card, r.shots[r.i]);
+      const { x, y, w, h } = r.geo;
+      // Рамка отсчитывается от внутреннего края обводки блока.
+      Object.assign(r.panel.style, { left: `${x - r.card.clientLeft}px`, top: `${y - r.card.clientTop}px`, width: `${w}px`, height: `${h}px` });
+    };
+    // Сам блок внутри рамки — с него раскрытие начинается и в него же сворачивается.
+    const cardClip = (r: Run) => {
+      const { x, y, w, h } = r.geo, v = (n: number) => `${Math.max(0, n)}px`;
+      return `inset(${v(-y)} ${v(x + w - r.card.offsetWidth)} ${v(y + h - r.card.offsetHeight)} ${v(-x)} round 9px)`;
+    };
+
+    const open = async (card: HTMLElement) => {
+      if (run?.card === card) return;
+      if (run) close(run);
+      const panel = card.querySelector<HTMLElement>('[data-tl-back]')!;
+      const shots = [...panel.querySelectorAll('img')];
+      shots.forEach((s, k) => { s.loading = 'eager'; s.classList.toggle('is-cur', k === 0); });
+      const r: Run = { card, panel, shots, i: 0, timer: 0, y: scrollY, geo: { x: 0, y: 0, w: 0, h: 0 }, closing: false };
+      run = r;
+      await Promise.race([shots[0].decode().catch(() => {}), wait(800)]); // пропорции и картинка нужны до раскрытия
+      if (run !== r) return;
+      r.y = scrollY;
+      place(r);
+      void panel.offsetWidth; // зафиксировать размер, чтобы переход размеров не сработал на самом раскрытии
+      panel.classList.add('is-morph');
+      card.classList.add('is-open');
+      panel.animate([{ clipPath: cardClip(r), opacity: 0 }, { opacity: 1, offset: .3 }, { clipPath: FULL, opacity: 1 }],
+        { duration: still.matches ? 1 : OPEN, easing: 'cubic-bezier(.2,.7,.2,1)' });
+      r.timer = window.setTimeout(step, OPEN + (shots.length > 1 ? STEP : SINGLE), r);
+    };
+    const step = (r: Run) => {
+      if (r.closing) return;
+      if (r.i >= r.shots.length - 1) return close(r);
+      r.shots[r.i].classList.remove('is-cur');
+      r.shots[++r.i].classList.add('is-cur');
+      place(r);
+      r.timer = window.setTimeout(step, STEP, r);
+    };
+    const close = (r: Run) => {
+      if (r.closing) return;
+      r.closing = true;
+      clearTimeout(r.timer);
+      if (run === r) run = null;
+      const anim = r.panel.animate([{ clipPath: FULL, opacity: 1 }, { opacity: 1, offset: .55 }, { clipPath: cardClip(r), opacity: 0 }],
+        { duration: still.matches ? 1 : CLOSE, easing: 'cubic-bezier(.5,0,.4,1)', fill: 'forwards' });
+      anim.finished.then(() => {
+        anim.cancel();
+        if (run?.card === r.card) return; // успели открыть снова
+        r.card.classList.remove('is-open');
+        r.panel.classList.remove('is-morph');
+        r.shots.forEach((s, k) => s.classList.toggle('is-cur', k === 0));
+      });
+    };
+
+    section.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const btn = t.closest<HTMLElement>('[data-tl-flip]');
+      if (btn) open(btn.closest<HTMLElement>('.timeline__item')!);
+      else if (run && t.closest('[data-tl-back]')) close(run);
+    });
+    // Подвели мышь к блоку — заранее грузим его фото, чтобы раскрытие не ждало сеть.
+    section.addEventListener('pointerover', (e) => {
+      (e.target as HTMLElement).closest('.timeline__item')?.querySelectorAll<HTMLImageElement>('[data-tl-back] img').forEach((s) => { s.loading = 'eager'; });
+    });
+    addEventListener('scroll', () => { if (run && Math.abs(scrollY - run.y) > 24) close(run); }, { passive: true });
+    addEventListener('resize', () => { if (run) close(run); });
+
+    let raf = 0;
+    addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); }, { passive: true });
+    new ResizeObserver(() => layout()).observe(track);
+    wide.addEventListener('change', layout);
+    addEventListener('resize', layout);
+    document.fonts?.ready.then(layout);
+    section.classList.add('is-ready');
+    layout();
+  }
+</script>

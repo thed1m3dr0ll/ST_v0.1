@@ -1,0 +1,61 @@
+---
+// «Объекты» — все объекты с фильтром по типу. Клик по карточке открывает окно объекта (ObjectModal), отдельных страниц нет.
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import ProjectCard from '../../components/ProjectCard.astro';
+import ObjectModal from '../../components/ObjectModal.astro';
+import Consult from '../../components/Consult.astro';
+import { projects, projectTypes } from '../../data/projects';
+import heroImg from '../../assets/photos/plotnichny-2.jpg';
+
+const usedTypes = projectTypes.filter((t) => t.id === 'all' || projects.some((p) => p.type === t.id));
+---
+<Base title="Объекты" description="Реализованные объекты Стекляники: жилые комплексы, частные дома, коммерческие объекты и специальные решения.">
+  <PageHero
+    title="Объекты"
+    image={heroImg}
+    crumbs={[{ label: 'Объекты' }]}
+    tall
+    down="#objects"
+    mobileTitleLow
+  />
+
+  <section class="section projects-page" id="objects" data-filter-root>
+    <div class="pattern pattern--fade-right"></div>
+    <div class="container">
+      <div class="filters" role="tablist" aria-label="Тип объекта">
+        {usedTypes.map((t, i) => (
+          <button type="button" role="tab" class:list={['filters__btn', { 'is-active': i === 0 }]} aria-selected={i === 0 ? 'true' : 'false'} data-filter={t.id}>{t.label}</button>
+        ))}
+      </div>
+      <ul class="projects-page__grid">
+        {projects.map((p) => <li data-cats={p.type} class="projects-page__item"><ProjectCard project={p} /></li>)}
+      </ul>
+      <p class="projects-page__empty" data-filter-empty hidden>В этой категории пока нет объектов.</p>
+    </div>
+  </section>
+
+  <ObjectModal projects={projects} />
+
+  <Consult />
+</Base>
+
+<style>
+  .projects-page { background: linear-gradient(180deg, #f3f7f6, var(--bg)); }
+  .projects-page__grid { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  /* Карточки здесь 6:5 («квадрат пошире») и без рамки — так же, как карточки на «Услугах» (карусели с ProjectCard не трогаем) */
+  .projects-page__item :global(.pcard) { aspect-ratio: 6 / 5; border: 0; background: var(--line); }
+  .projects-page__item { animation: fade .4s var(--ease); }
+  .projects-page__item.is-hidden { display: none; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } }
+  .projects-page__empty { padding: 40px 0; color: var(--text-2); }
+  @media (max-width: 1024px) { .projects-page__grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 640px) {
+    .projects-page__grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  import { initFilter } from '../../scripts/filter';
+  initFilter();
+</script>

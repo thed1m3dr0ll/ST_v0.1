@@ -1,0 +1,74 @@
+---
+// Страница юридического документа (политика ПДн, политика cookie, согласия).
+// Текст — src/content/docs/<id>.md, редактируется в админке /admin/ → «Документы».
+import { getEntry, render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { docs, type DocId } from '../data/docs';
+
+interface Props { id: DocId; }
+const { id } = Astro.props;
+const entry = await getEntry('docs', id);
+if (!entry) throw new Error(`Нет документа src/content/docs/${id}.md`);
+const { Content } = await render(entry);
+const { title, subtitle, edition } = entry.data;
+const others = docs.filter((d) => d.id !== id);
+---
+<Base title={title} solidHeader noindex>
+  <section class="doc">
+    <div class="container doc__inner">
+      <nav class="doc__crumbs" aria-label="Навигация"><a href="/">Главная</a><span>/</span><span>{title}</span></nav>
+      <h1 class="doc__title">{title}</h1>
+      {subtitle && <p class="doc__sub">{subtitle}</p>}
+      {edition && <p class="doc__edition">{edition}</p>}
+
+      <div class="doc__body">
+        <Content />
+      </div>
+
+      <nav class="doc__others" aria-label="Другие документы">
+        <p class="doc__others-title">Другие документы</p>
+        <ul>
+          {others.map((d) => <li><a href={d.href}>{d.label}</a></li>)}
+        </ul>
+      </nav>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .doc { padding: calc(var(--header-h) + 40px) 0 96px; background: var(--white); }
+  .doc__inner { max-width: 880px; }
+  .doc__crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; font-size: 12px; color: var(--text-2); }
+  .doc__crumbs a:hover { color: var(--ink); }
+  .doc__title { font-weight: 700; font-size: clamp(24px, 2.2vw, 38px); line-height: 1.25; letter-spacing: -0.0125em; text-transform: uppercase; color: var(--ink); text-wrap: balance; }
+  .doc__sub { margin-top: 10px; font-size: 16px; color: var(--ink); }
+  .doc__edition { margin-top: 6px; font-size: 13px; color: var(--text-2); }
+
+  .doc__body { margin-top: 36px; padding-top: 32px; border-top: 1px solid var(--line); color: var(--ink); }
+  .doc__body :global(h2) { margin: 40px 0 14px; font-size: 17px; line-height: 1.4; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; color: var(--ink); }
+  .doc__body :global(h2:first-child) { margin-top: 0; }
+  .doc__body :global(h3) { margin: 28px 0 10px; font-size: 16px; line-height: 1.45; font-weight: 700; color: var(--ink); }
+  .doc__body :global(p), .doc__body :global(li) { font-size: 15px; line-height: 1.7; }
+  .doc__body :global(p) { margin: 0 0 12px; }
+  .doc__body :global(ul), .doc__body :global(ol) { display: grid; gap: 6px; margin: 0 0 14px; padding-left: 22px; }
+  .doc__body :global(ul) { list-style: disc; }
+  .doc__body :global(ol) { list-style: decimal; }
+  .doc__body :global(li::marker) { color: var(--brand-pastel); }
+  .doc__body :global(strong) { font-weight: 700; }
+  .doc__body :global(a) { color: var(--ink); text-decoration: underline; text-decoration-color: var(--brand-pastel); text-underline-offset: 3px; overflow-wrap: anywhere; transition: color .2s, text-decoration-color .2s; }
+  .doc__body :global(a:hover) { color: var(--accent); text-decoration-color: currentColor; }
+
+  .doc__others { margin-top: 56px; padding: 24px 28px; border-radius: 9px; background: var(--bg-soft); }
+  .doc__others-title { margin-bottom: 12px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+  .doc__others ul { display: grid; gap: 8px; }
+  .doc__others a { font-size: 14px; color: var(--ink); text-decoration: underline; text-decoration-color: var(--brand-pastel); text-underline-offset: 3px; }
+  .doc__others a:hover { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    .doc { padding-bottom: 64px; }
+    .doc__body { margin-top: 28px; padding-top: 24px; }
+    .doc__body :global(h2) { font-size: 15px; }
+    .doc__body :global(p), .doc__body :global(li) { font-size: 14px; }
+    .doc__others { padding: 20px; }
+  }
+</style>

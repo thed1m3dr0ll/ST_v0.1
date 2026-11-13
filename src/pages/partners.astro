@@ -1,0 +1,128 @@
+﻿---
+// «Партнерам»: первый экран (фото Escape) → «Открыты для сотрудничества» → полоса «О нас» → «Наши проекты»
+// (карусель с главной, карточки со страницы «Объекты») → сертификаты (блок с главной, настоящие сертификаты) →
+// полоса «Связаться со специалистом» (форма заявки с вопросом о сфере деятельности) → подвал.
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import { Image } from 'astro:assets';
+import CtaBand from '../components/CtaBand.astro';
+import Icon from '../components/Icon.astro';
+import ObjectModal from '../components/ObjectModal.astro';
+import Projects from '../components/home/Projects.astro';
+import Certificates from '../components/home/Certificates.astro';
+import { projects } from '../data/projects';
+import heroImg from '../assets/partners/hero-escape.jpg';
+// Фото для узких полос — фрагменты реальных объектов (изогнутое остекление «Новакарда», стеклянный фасад ЖК «Тимирязевский»)
+import aboutBandImg from '../assets/partners/bands/novakard-04.jpg';
+import contactBandImg from '../assets/partners/bands/timiryazevsky-01.jpg';
+
+// Карточки «Открыты для сотрудничества»: фото — из «для сайта/для страницы партнерам» (tools/prep-partners.cjs)
+import coopDeveloper from '../assets/partners/coop/developer.jpg';
+import coopArchitect from '../assets/partners/coop/architect.jpg';
+import coopBusiness from '../assets/partners/coop/business.jpg';
+import coopPrivate from '../assets/partners/coop/private.jpg';
+
+// href — своя страница аудитории; у кого его пока нет, карточка не кликабельна
+const audience: { title: string; image: typeof coopDeveloper; href?: string }[] = [
+  { title: 'Девелоперам', image: coopDeveloper, href: '/partners/developers/' },
+  { title: 'Архитекторам и дизайнерам', image: coopArchitect, href: '/partners/architects/' },
+  { title: 'Владельцам бизнеса', image: coopBusiness, href: '/partners/business/' },
+  { title: 'Частным лицам', image: coopPrivate, href: '/partners/private/' },
+];
+
+// Объекты для карусели «Наши проекты» — в этом порядке (slug = имя папки в src/content/objects/).
+// Если объект скрыли или удалили в админке, он просто пропадает из карусели.
+const ourProjects = ['escape', 'sadko', 'zhk-georgievsky', 'royka']
+  .map((slug) => projects.find((x) => x.slug === slug))
+  .filter((p): p is (typeof projects)[number] => !!p);
+---
+<Base title="Партнерам" description="Стекляника открыта для сотрудничества с девелоперами, архитекторами и дизайнерами, владельцами бизнеса и частными лицами.">
+  <PageHero
+    title="Партнерам"
+    image={heroImg}
+    crumbs={[{ label: 'Партнерам' }]}
+    tall
+    down="#cooperation"
+    mobileTitleLow
+  />
+
+  <section class="section section--dark coop" id="cooperation">
+    <div class="pattern pattern--fade-right"></div>
+    <div class="container">
+      <div class="coop__head reveal">
+        <h2 class="h2">Открыты для<br />сотрудничества</h2>
+        <!-- вставка-цитата с полосочкой слева, как подписи-tagline в других блоках -->
+        <p class="tagline coop__quote">Изучим ваш проект и подберём подходящий<br />формат взаимодействия</p>
+      </div>
+      <ul class="coop__grid">
+        {audience.map((a, i) => (
+          <li class="coop__card reveal" style={`transition-delay:${i * 70}ms`}>
+            <Image src={a.image} alt="" widths={[400, 640, 834, 1200]} sizes="(max-width: 640px) 92vw, 600px" class="coop__img" />
+            <div class="coop__foot">
+              <h3 class="coop__title">{a.title}</h3>
+              {a.href && <span class="coop__more" aria-hidden="true">Подробнее <Icon name="arrow-right" /></span>}
+            </div>
+            {a.href && <a href={a.href} class="coop__link" aria-label={`${a.title} — подробнее`}></a>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CtaBand title="Узнать больше о нас" button="Перейти" href="/about/" light image={aboutBandImg} position="50% 55%" />
+
+  <Projects title="Наши проекты" text="" items={ourProjects} />
+
+  <Certificates title="Сертификаты" />
+
+  <CtaBand title="Связаться со специалистом" button="Перейти" light leadRole image={contactBandImg} position="50% 40%" />
+
+  <ObjectModal projects={ourProjects} />
+</Base>
+
+<style>
+  /* На компьютере отступы сверху и снизу меньше обычной секции — экран компактнее */
+  @media (min-width: 1025px) { .coop { padding-block: 56px 48px; } }
+  /* шапка: заголовок слева, вставка-цитата справа — по центру заголовка по высоте */
+  .coop__head { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 48px; }
+  .coop__quote { max-width: 340px; }
+  /* Карточки: сетка 2 × 2 на всю ширину контента (от заголовка до цитаты), прямоугольные 2 : 1.
+     Фото чуть шире 16 : 9 — по высоте срезаем немного, в основном снизу (сверху каска и головы) */
+  .coop__grid { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 32px; }
+  .coop__card {
+    position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 2 / 1; container-type: inline-size;
+    border-radius: 9px; background: var(--green-900); /* фон под фото — цвет секции, чтобы по краям не было светлой каймы */
+  }
+  .coop__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; transition: transform .8s var(--ease); }
+  /* карточка со своей страницей: ссылка растянута на всю карточку, при наведении фото приближается */
+  .coop__link { position: absolute; inset: 0; z-index: 2; border-radius: inherit; }
+  .coop__card:has(.coop__link:hover) .coop__img, .coop__card:has(.coop__link:focus-visible) .coop__img { transform: scale(1.05); }
+  /* затемняем низ «Зелёным мхом», чтобы белое название читалось */
+  .coop__card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(61,74,71,.92) 0%, rgba(61,74,71,.6) 28%, rgba(61,74,71,0) 58%); }
+  /* низ карточки: название слева (у всех на одной высоте, в одну строку), справа «Подробнее →» — видно, что карточка ведёт на страницу */
+  .coop__foot {
+    position: absolute; z-index: 1; left: clamp(14px, 1.6vw, 28px); right: clamp(14px, 1.6vw, 28px); bottom: clamp(12px, 1.5vw, 26px);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px;
+  }
+  .coop__title { font-weight: 700; font-size: clamp(13px, 1.35vw, 24px); line-height: 1.3; text-transform: uppercase; color: var(--white); white-space: nowrap; }
+  /* «Подробнее» — светлая полупрозрачная кнопка; при наведении на карточку заливается «Бумагой», стрелка сдвигается */
+  .coop__more {
+    display: inline-flex; align-items: center; gap: 10px; flex: none;
+    padding: 9px 16px; border: 1px solid rgba(251,253,255,.6); border-radius: 9px;
+    background: rgba(251,253,255,.12); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    font-weight: 700; font-size: 11px; line-height: 1.2; letter-spacing: .1em; text-transform: uppercase; color: var(--white);
+    transition: background .25s var(--ease), color .25s var(--ease), border-color .25s var(--ease);
+  }
+  .coop__more :global(svg) { width: 14px; height: 14px; transition: transform .25s var(--ease); }
+  .coop__card:has(.coop__link:hover) .coop__more, .coop__card:has(.coop__link:focus-visible) .coop__more { background: var(--white); border-color: var(--white); color: var(--green-900); }
+  .coop__card:has(.coop__link:hover) .coop__more :global(svg), .coop__card:has(.coop__link:focus-visible) .coop__more :global(svg) { transform: translateX(3px); }
+  /* узкая карточка (телефон, планшет): «Подробнее» у всех под названием, а не у одной длинной */
+  @container (max-width: 420px) { .coop__foot { flex-direction: column; align-items: flex-start; } }
+  @media (max-width: 640px) {
+    .coop__head { gap: 16px; }
+    .coop__grid { grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 28px; }
+    .coop__card { aspect-ratio: 16 / 9; }
+    .coop__title { font-size: 15px; }
+    .coop__more { padding: 7px 12px; font-size: 10px; }
+  }
+</style>

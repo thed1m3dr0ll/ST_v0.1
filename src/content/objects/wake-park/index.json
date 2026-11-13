@@ -1,0 +1,15 @@
+{
+  "title": "WAKE PARK",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление Alutech (витражи ALT F50, двери ALT W62).",
+  "photos": [
+    "/src/content/objects/wake-park/01.jpg",
+    "/src/content/objects/wake-park/02.jpg",
+    "/src/content/objects/wake-park/03.jpg",
+    "/src/content/objects/wake-park/04.jpg",
+    "/src/content/objects/wake-park/05.jpg"
+  ],
+  "published": true,
+  "order": 90
+}

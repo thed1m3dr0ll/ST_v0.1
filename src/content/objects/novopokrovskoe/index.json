@@ -1,0 +1,20 @@
+{
+  "title": "Деревня Новопокровское",
+  "type": "private",
+  "location": "Нижегородская область",
+  "works": "Остекление SCHUECO (окна AWS 75SI, витражи FWS 50HI, раздвижные двери ASE 80HI), НВФ с облицовкой панелями EQUITONE, террасы из термодревесины, цельностеклянные ограждения.",
+  "photos": [
+    "/src/content/objects/novopokrovskoe/01.jpg",
+    "/src/content/objects/novopokrovskoe/02.jpg",
+    "/src/content/objects/novopokrovskoe/03.jpg",
+    "/src/content/objects/novopokrovskoe/04.jpg",
+    "/src/content/objects/novopokrovskoe/05.jpg",
+    "/src/content/objects/novopokrovskoe/06.jpg",
+    "/src/content/objects/novopokrovskoe/07.jpg",
+    "/src/content/objects/novopokrovskoe/08.jpg",
+    "/src/content/objects/novopokrovskoe/09.jpg",
+    "/src/content/objects/novopokrovskoe/10.jpg"
+  ],
+  "published": true,
+  "order": 50
+}

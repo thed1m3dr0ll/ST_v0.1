@@ -1,0 +1,43 @@
+---
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import img from '../../assets/career-team.png'; // фото 77 из «для сайта»
+---
+<section class="career">
+  <div class="pattern pattern--fade-left career__pattern"></div>
+  <div class="career__media">
+    <Image src={img} alt="Команда Стекляники за работой над проектом" widths={[768, 1280, 1800]} sizes="(max-width: 860px) 100vw, 55vw" class="career__img" />
+  </div>
+
+  <div class="container career__inner">
+    <div class="career__text reveal">
+      <h2 class="h2">Вступайте<br />в нашу команду</h2>
+      <p class="lead">Мы всегда открыты для талантливых и инициативных специалистов, которые разделяют наши ценности и стремятся создавать качественные решения вместе с нами.</p>
+      <a href="/careers/" class="btn">Смотреть вакансии <Icon name="arrow-right" /></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* бледный «Пастельно-бирюзовый» поверх «Бумаги» + мягкие внутренние тени сверху и снизу —
+     экран отделяется от белых соседей («Этапы» и «Контакты») */
+  .career {
+    position: relative; min-height: 440px; overflow: hidden; display: flex; align-items: center;
+    background: linear-gradient(rgba(153,186,184,.1), rgba(153,186,184,.1)), #fbfdff;
+    box-shadow: inset 0 18px 30px -24px rgba(61,74,71,.28), inset 0 -18px 30px -24px rgba(61,74,71,.28);
+  }
+  .career__pattern { right: 50%; opacity: .06; }
+  /* фото — правая половина экрана, до самого края страницы */
+  .career__media { position: absolute; top: 0; bottom: 0; left: 46%; right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 9% 100%); }
+  .career__img { width: 100%; height: 100%; object-fit: cover; object-position: 60% 40%; } /* в кадре — лица и стол с чертежами */
+  .career__inner { position: relative; padding-block: 60px; }
+  .career__text { max-width: 520px; display: grid; justify-items: start; }
+  .career__text .h2 { margin-bottom: 26px; }
+  .career__text .lead { max-width: 380px; margin-bottom: 32px; font-size: 13px; }
+  .career__text .btn { font-size: 11px; min-height: 40px; }
+  @media (max-width: 860px) {
+    .career { flex-direction: column; align-items: stretch; }
+    .career__media { position: relative; left: 0; height: 280px; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 88%); order: -1; }
+    .career__inner { padding-block: 32px 56px; }
+  }
+</style>

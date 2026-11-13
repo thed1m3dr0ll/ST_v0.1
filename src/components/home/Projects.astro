@@ -1,0 +1,198 @@
+---
+// Карусель объектов. Без параметров — как на главной (кейсы из data/cases.ts, клик ведёт на «Объекты»).
+// С параметром items — карточки объектов со страницы «Объекты» (ProjectCard); по клику открывается окно объекта,
+// поэтому на такой странице должен стоять и <ObjectModal projects={…} /> (как на «Партнерам»).
+import { Image } from 'astro:assets';
+import SectionHead from '../SectionHead.astro';
+import ProjectCard from '../ProjectCard.astro';
+import Icon from '../Icon.astro';
+import { cases } from '../../data/cases';
+import type { Project } from '../../data/projects';
+
+interface Props {
+  title?: string;  // перенос строки — через \n
+  text?: string;   // описание справа от заголовка; '' — без описания
+  items?: Project[];
+  rounded?: boolean; // карточки объектов со скруглением 9px (страницы аудиторий); без него — прямые углы, как на «Партнерам»
+}
+const {
+  title = 'От идеи —\nк воплощению',
+  text = 'Проектируем и реализуем нестандартные конструкции, адаптируя решения под архитектуру, функциональные требования и особенности каждого объекта.',
+  items,
+  rounded = false,
+} = Astro.props;
+---
+<section class:list={['section projects-sec', { 'projects-sec--no-text': !text, 'projects-sec--objects': items, 'projects-sec--rounded': items && rounded }]} id="projects">
+  <div class="pattern pattern--fade-right projects-sec__pattern"></div>
+  <div class="container">
+    <SectionHead title={title} text={text || undefined}>
+      <a href="/projects/" class="btn btn--outline projects-sec__all">Смотреть все объекты <Icon name="arrow-right" /></a>
+    </SectionHead>
+
+    <div class="projects-sec__carousel reveal">
+      <button type="button" class="projects-sec__nav" aria-label="Предыдущие объекты" data-proj-prev>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+      </button>
+
+      <div class="swiper projects-sec__slider" data-proj-slider>
+        <div class="swiper-wrapper">
+          {items && items.map((p) => <div class="swiper-slide"><ProjectCard project={p} /></div>)}
+          {!items && cases.map((c) => {
+            const lines = c.title.split('\n');
+            return (
+              <div class="swiper-slide">
+                <a href="/projects/" class:list={['case', { 'case--empty': !c.cover }]}>
+                  {c.cover && <Image src={c.cover} alt={c.title.replace('\n', ' ')} widths={[400, 640, 960]} sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 420px" class="case__img" />}
+                  <span class="case__shade"></span>
+                  <span class="case__shine"></span>
+                  <span class="case__body">
+                    <span class="case__cat">{c.category}</span>
+                    <span class="case__title">{lines.map((l, i) => <>{l}{i < lines.length - 1 && <br />}</>)}</span>
+                  </span>
+                  <span class="icon-btn icon-btn--light case__arrow"><Icon name="arrow-right" size={15} /></span>
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <button type="button" class="projects-sec__nav" aria-label="Следующие объекты" data-proj-next>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+      </button>
+    </div>
+
+    <div class="projects-sec__foot">
+      <div class="projects-sec__pager">
+        <span class="projects-sec__count" data-proj-count>01 / 04</span>
+        <div class="projects-sec__dots" data-proj-dots></div>
+      </div>
+      {!items && <p class="tagline">Архитектура,<br />которая остаётся надолго</p>}
+    </div>
+  </div>
+</section>
+
+<style>
+  .projects-sec { background: linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%); padding-block: 42px 48px; }
+  @media (min-width: 1025px) { .projects-sec { padding-block: 64px 56px; } }
+  .projects-sec__pattern { left: 40%; }
+  /* заголовок, описание и кнопка — на одной линии (по центру по вертикали) */
+  .projects-sec :global(.sec-head) { align-items: center; }
+  .projects-sec :global(.sec-head__text), .projects-sec :global(.sec-head__aside) { padding-top: 0; }
+  /* карточки объектов (вариант с items, «Партнерам»): квадратные, без рамки и скругления — как карточки на главной.
+     Меняем только внутри этой карусели, на странице «Объекты» ProjectCard остаётся прежней. */
+  .projects-sec--objects :global(.pcard) { aspect-ratio: 1; border: 0; border-radius: 0; }
+  .projects-sec--rounded :global(.pcard) { border-radius: 9px; }
+  /* без описания — кнопка «Смотреть все объекты» уходит вправо, на линию заголовка */
+  @media (min-width: 1025px) { .projects-sec--no-text :global(.sec-head) { grid-template-columns: max-content auto; } }
+  /* заголовок — «Зелёный мох» из брендбука, как кнопка */
+  .projects-sec :global(.h2) { color: var(--brand-moss); }
+
+  /* «Смотреть все объекты» — «Зелёный мох» из брендбука; меняется только эта кнопка */
+  .projects-sec .projects-sec__all { --btn-bg: var(--brand-moss); --btn-fg: var(--white); --btn-bd: var(--brand-moss); }
+  .projects-sec .projects-sec__all:hover { --btn-bg: var(--accent); --btn-fg: var(--white); --btn-bd: var(--accent); }
+
+  /* стрелки по бокам карусели, на одной линии с карточками */
+  .projects-sec__carousel { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; margin-top: 38px; }
+  .projects-sec__nav { display: grid; place-items: center; width: 36px; height: 56px; color: var(--green-900); transition: color .25s var(--ease), opacity .25s; }
+  .projects-sec__nav svg { width: 30px; height: 30px; }
+  .projects-sec__nav:hover { color: var(--accent); }
+  .projects-sec__nav:disabled { opacity: .25; pointer-events: none; }
+  /* на широких экранах стрелки уходят в поля, а карусель занимает всю ширину контейнера */
+  @media (min-width: 1300px) { .projects-sec__carousel { margin-inline: -44px; } }
+  .projects-sec__slider { overflow: hidden; min-width: 0; width: 100%; margin: 0; }
+  .projects-sec__slider .swiper-wrapper { display: flex; }
+  /* десктоп: три крупные карточки на экране, остальные — листаем */
+  .projects-sec__slider .swiper-slide { flex: none; width: calc((100% - 2 * 12px) / 3); margin-right: 12px; height: auto; }
+
+  .projects-sec__foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-top: 30px; }
+  .projects-sec__pager { display: flex; align-items: center; gap: 16px; padding-left: 44px; }
+  @media (min-width: 1300px) { .projects-sec__pager { padding-left: 0; } }
+  .projects-sec__count { font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .projects-sec__dots { display: flex; gap: 1px; }
+  .projects-sec__dots :global(button) { width: 35px; height: 2px; background: var(--line); transition: background .3s; position: relative; }
+  .projects-sec__dots :global(button)::before { content: ''; position: absolute; inset: -10px 0; }
+  .projects-sec__dots :global(button.is-active) { background: var(--green-900); }
+  .projects-sec .tagline { text-align: right; border-left-color: var(--text-2); }
+
+  /* карточка кейса — тот же вид, что у карточек объектов */
+  .case { position: relative; display: block; aspect-ratio: 299 / 256; overflow: hidden; background: var(--green-900); color: #fbfdff; isolation: isolate; }
+  .case--empty::before { content: ''; position: absolute; inset: 0; background: url('/images/pattern-light.webp') center / 900px auto; opacity: .08; }
+  .case__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
+  .case__shade { position: absolute; inset: 0; background: linear-gradient(0deg, #3d4a47 0%, rgba(61,74,71,.7) 30%, rgba(61,74,71,0) 62%); }
+  .case__shine { position: absolute; top: 0; bottom: 0; left: -100%; width: 100%; background: linear-gradient(115deg, transparent 42%, rgba(251,253,255,.25) 50%, transparent 58%); transition: left .9s var(--ease); }
+  .case__body { position: absolute; left: 16px; right: 60px; bottom: 18px; display: grid; gap: 4px; }
+  .case__cat { font-size: 11px; text-transform: uppercase; color: rgba(251,253,255,.85); }
+  .case__title { font-weight: 700; font-size: 14px; line-height: 1.35; text-transform: uppercase; }
+  .case__arrow { position: absolute; right: 12px; bottom: 16px; width: 32px; height: 32px; }
+  @media (min-width: 1025px) {
+    .case__body { left: 20px; right: 68px; bottom: 22px; gap: 6px; }
+    .case__cat { font-size: 12px; }
+    .case__title { font-size: 17px; }
+    .case__arrow { right: 18px; bottom: 20px; width: 36px; height: 36px; }
+  }
+  .case:hover .case__img { transform: scale(1.06); }
+  .case:hover .case__shine { left: 100%; }
+  .case:hover .case__arrow { background: #fbfdff; color: var(--green-900); }
+
+  @media (max-width: 1024px) {
+    .projects-sec__slider .swiper-slide { width: calc((100% - 8px) / 2.2); }
+    .projects-sec :global(.sec-head__aside) { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; width: 100%; padding-top: 0; }
+    .projects-sec__carousel { gap: 10px; }
+    .projects-sec__pager { padding-left: 44px; }
+  }
+  /* мобильные: листаем свайпом, стрелки прячем, карусель доходит до края экрана */
+  @media (max-width: 640px) {
+    .projects-sec__carousel { grid-template-columns: minmax(0, 1fr); margin-top: 28px; margin-right: calc(var(--gutter) * -1); }
+    .projects-sec__nav { display: none; }
+    .projects-sec__slider { touch-action: pan-y; }
+    .projects-sec__slider .swiper-slide { width: 84%; }
+    .case { aspect-ratio: 4 / 3.6; }
+    .case__body { left: 14px; right: 54px; bottom: 16px; gap: 4px; }
+    .case__title { font-size: 15px; }
+    .projects-sec__foot { margin-top: 22px; }
+    .projects-sec__pager { padding-left: 0; }
+    .projects-sec .tagline { display: none; }
+  }
+</style>
+
+<script>
+  import Swiper from 'swiper';
+  import { Navigation } from 'swiper/modules';
+  import 'swiper/css';
+
+  document.querySelectorAll<HTMLElement>('[data-proj-slider]').forEach((el) => {
+    const section = el.closest('section')!;
+    const count = section.querySelector<HTMLElement>('[data-proj-count]')!;
+    const dots = section.querySelector<HTMLElement>('[data-proj-dots]')!;
+
+    const swiper = new Swiper(el, {
+      modules: [Navigation],
+      slidesPerView: 1.19,
+      spaceBetween: 8,
+      speed: 600,
+      threshold: 6,
+      navigation: { prevEl: section.querySelector<HTMLElement>('[data-proj-prev]'), nextEl: section.querySelector<HTMLElement>('[data-proj-next]') },
+      breakpoints: { 641: { slidesPerView: 2.2, spaceBetween: 8 }, 1025: { slidesPerView: 3, spaceBetween: 12 } },
+      on: { init: (s) => render(s), slideChange: (s) => render(s), resize: (s) => render(s) },
+    });
+
+    function render(s: Swiper) {
+      const perView = Math.max(1, Math.floor(Number(s.params.slidesPerView) || 1));
+      const pages = Math.max(1, s.slides.length - perView + 1);
+      const active = Math.min(s.activeIndex, pages - 1);
+      count.textContent = `${String(active + 1).padStart(2, '0')} / ${String(pages).padStart(2, '0')}`;
+      if (dots.childElementCount !== pages) {
+        dots.innerHTML = '';
+        for (let i = 0; i < pages; i++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.setAttribute('aria-label', `Группа объектов ${i + 1}`);
+          b.addEventListener('click', () => swiper.slideTo(i));
+          dots.append(b);
+        }
+      }
+      [...dots.children].forEach((d, i) => d.classList.toggle('is-active', i === active));
+    }
+  });
+</script>

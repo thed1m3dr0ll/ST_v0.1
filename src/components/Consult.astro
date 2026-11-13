@@ -1,0 +1,46 @@
+---
+import Icon from './Icon.astro';
+---
+<section class="section section--dark consult">
+  <div class="pattern consult__pattern"></div>
+  <div class="container consult__grid">
+    <div class="consult__text reveal">
+      <p class="eyebrow">Заявка на консультацию</p>
+      <h2 class="h2">Обсудите ваш проект<br />со специалистом</h2>
+      <p class="lead">Оставьте контакты — подготовим предварительный расчёт и предложим оптимальное техническое решение под задачу вашего объекта.</p>
+    </div>
+    <div class="consult__box reveal">
+      <ul>
+        <li><Icon name="target" size={18} />Индивидуальное предложение за 1 рабочий день</li>
+        <li><Icon name="shield" size={18} />Бесплатная консультация инженера</li>
+        <li><Icon name="file" size={18} />Учтём все особенности объекта</li>
+      </ul>
+      <button type="button" class="btn btn--block btn--lg consult__btn" data-lead="Обсудите ваш проект со специалистом">Оставить заявку <Icon name="arrow-right" /></button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .consult { padding-block: 96px 108px; }
+  /* Паттерн — на всю ширину блока, без растворения слева */
+  .consult.section--dark .consult__pattern { left: 0; width: 100%; background-size: cover; background-position: center; -webkit-mask-image: none; mask-image: none; }
+  .consult__grid > * { min-width: 0; }
+  .consult__grid { position: relative; display: grid; grid-template-columns: 1fr 491px; gap: 48px; align-items: end; }
+  .consult__text { display: grid; }
+  .consult__text .eyebrow { margin-bottom: 18px; }
+  .consult__text .h2 { margin-bottom: 26px; }
+  .consult__text .lead { max-width: 495px; }
+  .consult__box { padding: 33px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.04); margin-bottom: 0; }
+  .consult__box ul { display: grid; gap: 10px; margin-bottom: 24px; }
+  .consult__box li { display: flex; align-items: center; gap: 12px; font-size: 15px; color: rgba(255,255,255,.85); }
+  .consult__box svg { color: rgba(255,255,255,.4); flex: none; }
+  .consult__btn { --btn-bg: #1c3236; --btn-bd: #1c3236; }
+  @media (max-width: 960px) {
+    .consult__grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .consult { padding-block: 56px; }
+    .consult__box { padding: 22px 18px; }
+    .consult__box li { font-size: 14px; align-items: flex-start; }
+  }
+</style>

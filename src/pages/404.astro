@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+<Base title="Страница не найдена" noindex>
+  <section class="nf">
+    <div class="pattern pattern--light"></div>
+    <div class="container nf__inner">
+      <p class="nf__code">404</p>
+      <h1 class="h2">Страница не найдена</h1>
+      <p class="lead">Возможно, она была перемещена или вы ошиблись в адресе.</p>
+      <a href="/" class="btn btn--glass">На главную <Icon name="arrow-right" /></a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf { position: relative; min-height: 100svh; display: grid; place-items: center; overflow: hidden; background: linear-gradient(140deg, #162729, var(--green-900) 55%, var(--green-800)); color: #fff; }
+  .nf .pattern { opacity: .06; }
+  .nf__inner { position: relative; display: grid; justify-items: center; gap: 20px; text-align: center; padding-block: 140px 80px; }
+  .nf__code { font-family: var(--font-num); font-size: clamp(96px, 16vw, 200px); line-height: 1; color: var(--brand-pastel); }
+  .nf .h2 { color: #fff; }
+  .nf .lead { color: rgba(255,255,255,.75); }
+</style>

@@ -1,0 +1,15 @@
+{
+  "title": "Галерея на Рождественской",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление на системах Alutech.",
+  "photos": [
+    "/src/content/objects/galereya-rozhdestvenskaya/01.jpg",
+    "/src/content/objects/galereya-rozhdestvenskaya/02.jpg",
+    "/src/content/objects/galereya-rozhdestvenskaya/03.jpg",
+    "/src/content/objects/galereya-rozhdestvenskaya/04.jpg",
+    "/src/content/objects/galereya-rozhdestvenskaya/05.jpg"
+  ],
+  "published": true,
+  "order": 130
+}

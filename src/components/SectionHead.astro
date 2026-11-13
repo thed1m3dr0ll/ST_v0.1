@@ -1,0 +1,26 @@
+---
+// Шапка секции: «01 / 10», надзаголовок, заголовок H2, описание справа и доп. блок (кнопка/подпись).
+interface Props {
+  eyebrow?: string;      // 'О компании'
+  title: string;         // заголовок; перенос строки — через \n
+  text?: string;
+  eyebrowMark?: boolean; // маленький прямоугольник перед надзаголовком (как в Figma у «О компании»)
+}
+const { eyebrow, title, text, eyebrowMark } = Astro.props;
+const lines = title.split('\n');
+const hasAside = Astro.slots.has('default');
+---
+<div class:list={['sec-head reveal', { 'sec-head--no-aside': !hasAside }]}>
+  <div class="sec-head__title">
+    {eyebrow && <p class="eyebrow">{eyebrowMark && <span class="eyebrow-mark"></span>}{eyebrow}</p>}
+    <h2 class="h2">{lines.map((l, i) => <>{l}{i < lines.length - 1 && <br />}</>)}</h2>
+  </div>
+  {text && <p class="lead sec-head__text">{text}</p>}
+  {hasAside && <div class="sec-head__aside"><slot /></div>}
+</div>
+
+<style>
+  .eyebrow-mark { width: 9px; height: 6px; border: 1px solid var(--green-700); }
+  .sec-head--no-aside { grid-template-columns: max-content minmax(240px, 380px); }
+  @media (max-width: 1024px) { .sec-head--no-aside { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,71 @@
+---
+// «Владельцам бизнеса» (/partners/business/) — страница аудитории, открывается с карточки на «Партнерам».
+// Устроена как «Девелоперам» и «Архитекторам»: светлый первый экран (текст + фото-трапеция, шапка сразу залита) →
+// «Разные проекты — уникальные решения» (колода фото, Deck.astro) → полоса «Как мы работаем» (→ этапы на главной) →
+// «Наши объекты» (карусель, 4 коммерческих объекта) → светлая полоса «Рассчитаем стоимость» с фото (форма заявки) → подвал.
+// Фото — node tools/prep-business.cjs (src/assets/business).
+import Base from '../../layouts/Base.astro';
+import SplitHero from '../../components/SplitHero.astro';
+import Deck from '../../components/Deck.astro';
+import Projects from '../../components/home/Projects.astro';
+import ObjectModal from '../../components/ObjectModal.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { projects } from '../../data/projects';
+import heroImg from '../../assets/business/hero.jpg';
+// Полоса «Как мы работаем» — Центр КАМАЗ; полоса «Рассчитаем стоимость» — ресторан на Рождественской
+import bandImg from '../../assets/business/band-kamaz.jpg';
+import ctaImg from '../../assets/business/cta-restoran.jpg';
+
+import deck1 from '../../assets/business/deck/01.jpg';
+import deck2 from '../../assets/business/deck/02.jpg';
+import deck3 from '../../assets/business/deck/03.jpg';
+import deck4 from '../../assets/business/deck/04.jpg';
+import deck5 from '../../assets/business/deck/05.jpg';
+
+const deck = [
+  { img: deck1, alt: 'Арочное окно в зелёном профиле на бетонном фасаде ресторана на Рождественской' },
+  { img: deck2, alt: 'Входная группа ресторана Escape со стеклянными дверями' },
+  { img: deck3, alt: 'Вертикальное панорамное остекление галереи на Рождественской' },
+  { img: deck4, alt: 'Мятная арочная дверь в бетонном фасаде ресторана на Рождественской' },
+  { img: deck5, alt: 'Панорамное остекление ресторана Escape' },
+];
+
+// «Наши объекты» — в этом порядке (slug = имя папки в src/content/objects/).
+// Если объект скрыли или удалили в админке, он просто пропадает из карусели.
+const ourObjects = ['restoran-rozhdestvenskaya', 'galereya-rozhdestvenskaya', 'norkemikal', 'escape']
+  .map((slug) => projects.find((x) => x.slug === slug))
+  .filter((p): p is (typeof projects)[number] => !!p);
+---
+<Base solidHeader title="Владельцам бизнеса" description="Индивидуальные решения в остеклении коммерческих пространств с учётом концепции, архитектуры и функциональных задач вашего бизнеса.">
+  <SplitHero
+    title="Владельцам бизнеса"
+    text="Индивидуальные решения в остеклении коммерческих пространств с учетом концепции, архитектуры и функциональных задач вашего бизнеса."
+    image={heroImg}
+    alt="Предприниматель за рабочим столом в офисе с панорамным остеклением"
+    crumbs={[{ label: 'Партнерам', href: '/partners/' }, { label: 'Владельцам бизнеса' }]}
+    position="30% 50%"
+    down="#projects-deck"
+  />
+
+  <Deck
+    id="projects-deck"
+    title="Разные проекты — уникальные решения"
+    text="Вы получаете больше свободы в реализации интерьерных и архитектурных идей — без необходимости подстраивать их под стандартные решения. Это возможность создать пространство, которое будет соответствовать вашим представлениям о собственном бизнесе."
+    items={deck}
+  />
+
+  <CtaBand title="Узнать, как мы работаем" button="Перейти" href="/#process" light image={bandImg} position="50% 50%" />
+
+  <Projects title="Наши объекты" text="" items={ourObjects} rounded />
+
+  <CtaBand
+    title="Рассчитаем стоимость"
+    text="Расскажите о вашем объекте и задачах — подготовим предварительный расчёт, подберём профильные системы и предложим решение, которое подойдёт концепции вашего бизнеса."
+    button="Оставить заявку на расчёт"
+    light
+    image={ctaImg}
+    position="50% 50%"
+  />
+
+  <ObjectModal projects={ourObjects} />
+</Base>

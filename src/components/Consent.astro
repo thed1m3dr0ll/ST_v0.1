@@ -1,0 +1,39 @@
+---
+// Две обязательные галочки внизу каждой формы. По умолчанию НЕ отмечены — человек ставит их сам.
+// Первая — согласие, вторая — ознакомление с Политикой: согласие оформляем отдельно от других подтверждений (152-ФЗ, ст. 9; Политика, п. 1.6).
+// doc="consent" — заявки (квиз, окно «Запросить расчёт»), doc="consent-candidates" — форма резюме.
+// value уходит с заявкой: какой документ и в какой редакции принят (см. src/scripts/leads.ts).
+import { getEntry } from 'astro:content';
+import { docHref } from '../data/docs';
+
+interface Props { doc: 'consent' | 'consent-candidates'; class?: string; }
+const { doc, class: cls } = Astro.props;
+const entry = await getEntry('docs', doc);
+const policy = await getEntry('docs', 'privacy');
+const linkText = doc === 'consent' ? 'согласие на обработку персональных данных' : 'согласие на обработку персональных данных соискателя';
+const consentValue = [entry?.data.title, entry?.data.edition].filter(Boolean).join(', ');
+// У Политики дата указана не в шапке, а последней строкой текста
+const policyDate = policy?.body?.match(/Дата актуализации:\s*([^\n]+)/)?.[1]?.trim();
+const policyValue = [policy?.data.title, policyDate && `редакция от ${policyDate}`].filter(Boolean).join(', ');
+---
+<div class:list={['consent', cls]}>
+  <label class="check consent__check">
+    <input type="checkbox" name="consent" value={consentValue} required autocomplete="off" data-consent />
+    <span>Я даю <a href={docHref(doc)} target="_blank">{linkText}</a>.&nbsp;*</span>
+  </label>
+  <label class="check consent__check">
+    <input type="checkbox" name="policy" value={policyValue} required autocomplete="off" data-consent />
+    <span>С <a href={docHref('privacy')} target="_blank">Политикой обработки персональных данных</a> ознакомлен(а).&nbsp;*</span>
+  </label>
+</div>
+
+<style>
+  .consent { display: grid; gap: 10px; }
+  .consent__check { cursor: pointer; font-size: 13px; color: var(--ink); }
+  .consent__check input { flex: none; width: 18px; height: 18px; margin: 0; cursor: pointer; }
+  .consent__check a { text-decoration: underline; text-decoration-color: var(--brand-pastel); text-underline-offset: 2px; transition: color .2s; }
+  .consent__check a:hover { color: var(--accent); }
+  /* форма отправлена без галочки — подсвечиваем строку (класс ставит src/scripts/leads.ts) */
+  .consent__check.is-invalid input { outline: 2px solid #b3412f; outline-offset: 2px; }
+  .consent__check.is-invalid span { color: #b3412f; }
+</style>

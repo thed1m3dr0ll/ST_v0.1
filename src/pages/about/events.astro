@@ -1,0 +1,221 @@
+---
+// «События» — новости компании. Открывается из шапки: вкладка под пунктом «О нас».
+// Посты добавляются в админке /admin/ → «События» (данные — src/content/events/, чтение — src/data/events.ts).
+// Карточки по 3 в ряд: фото (если есть), дата, заголовок, начало текста с многоточием, «Подробнее».
+// По клику пост открывается на весь экран (текст прокручивается, фото целиком); у открытого поста свой адрес #<slug>.
+// Фото первого экрана — временное (ЖК «Холмс»), пользователь пришлёт своё.
+import { Image, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Icon from '../../components/Icon.astro';
+import heroImg from '../../assets/about/events-hero.jpg';
+import { events } from '../../data/events';
+import { site } from '../../data/site';
+
+const PAGE = 9; // столько карточек видно сразу, дальше — кнопка «Показать ещё»
+
+const items = await Promise.all(events.map(async (e) => ({
+  ...e,
+  big: e.photo ? await getImage({ src: e.photo, widths: [960, 1440, 2000] }) : null,
+})));
+---
+<Base title="События" description="События и новости компании «Стекляника»: объекты, производство, команда.">
+  <PageHero
+    title="События"
+    image={heroImg}
+    crumbs={[{ label: 'О нас', href: '/about/' }, { label: 'События' }]}
+    tall
+    down="#news"
+    mobileShort
+  />
+
+  <section class="section ev" id="news">
+    <div class="container">
+      <SectionHead title="Новости компании">
+        {items.length > 1 && (
+          <div class="filters ev__sort" role="group" aria-label="Порядок событий">
+            <button type="button" class="filters__btn is-active" aria-pressed="true" data-sort="new">Сначала новые</button>
+            <button type="button" class="filters__btn" aria-pressed="false" data-sort="old">Сначала старые</button>
+          </div>
+        )}
+      </SectionHead>
+
+      {/* Тонкая полоса со ссылкой на сообщество; адрес — тот же, что в подвале (правится в админке → «Контакты») */}
+      <aside class="ev__vk">
+        <div class="pattern pattern--light"></div>
+        <p class="ev__vk-text">Больше о жизни компании — в&nbsp;сообществе&nbsp;VK</p>
+        <a class="btn ev__vk-btn" href={site.vk} target="_blank" rel="noopener">Перейти <Icon name="arrow-right" /></a>
+      </aside>
+
+      {items.length === 0 && <p class="ev__none">Скоро здесь появятся новости компании.</p>}
+
+      {items.length > 0 && (
+        <ul class="ev__grid" data-events data-page={PAGE}>
+          {items.map((e, i) => (
+            <li class="ev__item" data-date={e.date} data-order={i} hidden={i >= PAGE}>
+              <button type="button" class="ev__card" data-event={e.slug} aria-label={`${e.title} — подробнее`}>
+                {e.photo && (
+                  <span class="ev__photo">
+                    <Image src={e.photo} alt="" widths={[400, 640, 900]} sizes="(max-width: 640px) 100vw, (max-width: 1180px) 50vw, 33vw" />
+                  </span>
+                )}
+                <span class="ev__body">
+                  {e.dateLabel && <time class="ev__date" datetime={e.date}>{e.dateLabel}</time>}
+                  <span class="ev__title">{e.title}</span>
+                  {e.excerpt && <span class:list={['ev__text', { 'ev__text--long': !e.photo }]}>{e.excerpt}</span>}
+                  <span class="ev__more">Подробнее <Icon name="arrow-right" size={14} /></span>
+                </span>
+              </button>
+              <template data-event-full={e.slug}>
+                {e.dateLabel && <time class="epost__date" datetime={e.date}>{e.dateLabel}</time>}
+                <h2 class="epost__title" id="epost-title">{e.title}</h2>
+                {e.big && <img class="epost__img" src={e.big.src} srcset={e.big.srcSet.attribute} sizes="(max-width: 960px) 100vw, 900px" width={e.photo!.width} height={e.photo!.height} alt={e.title} />}
+                <div class="epost__text" set:html={e.html} />
+              </template>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {items.length > PAGE && (
+        <div class="ev__more-wrap">
+          <button type="button" class="btn btn--outline" data-events-more>Показать ещё</button>
+        </div>
+      )}
+    </div>
+  </section>
+
+  {items.length > 0 && (
+    <dialog class="epost" data-event-modal aria-labelledby="epost-title">
+      <button type="button" class="icon-btn epost__close" aria-label="Закрыть" data-event-close><Icon name="x" /></button>
+      <article class="epost__inner" data-event-content></article>
+    </dialog>
+  )}
+</Base>
+
+<style>
+  .ev { background: linear-gradient(180deg, #f3f7f6, var(--bg)); }
+  .ev__sort { margin-bottom: 0; }
+
+  /* Полоса «Сообщество VK»: мох + светлый паттерн, надпись слева, светлая кнопка справа */
+  .ev__vk {
+    position: relative; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 12px 32px;
+    margin-top: 32px; padding: 14px 16px 14px 28px; border-radius: 9px; background: var(--brand-moss);
+  }
+  .ev__vk .pattern { opacity: .1; }
+  .ev__vk-text { position: relative; font-weight: 500; font-size: clamp(16px, 1.1vw, 19px); line-height: 1.35; color: var(--brand-paper); }
+  .ev__vk-btn { position: relative; flex: none; --btn-bg: var(--brand-paper); --btn-fg: var(--brand-moss); --btn-bd: var(--brand-paper); }
+  .ev__vk-btn:hover { --btn-bg: var(--brand-pastel); --btn-bd: var(--brand-pastel); }
+  @media (max-width: 640px) {
+    .ev__vk { margin-top: 24px; padding: 14px 14px 14px 16px; gap: 12px 16px; }
+    .ev__vk-text { font-size: 15px; }
+    .ev__vk-btn { padding-inline: 14px; }
+  }
+
+  .ev__none { margin-top: 40px; padding: 24px; max-width: 900px; border: 1px solid var(--line); border-radius: 9px; background: var(--white); line-height: 1.55; color: var(--brand-moss); }
+
+  /* Карточки — по 3 в ряд, одной высоты в ряду; «Подробнее» всегда внизу */
+  .ev__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 40px; }
+  .ev__item { display: flex; }
+  .ev__item[hidden] { display: none; }
+  .ev__card {
+    flex: 1; display: flex; flex-direction: column; width: 100%; padding: 0; overflow: hidden; text-align: left;
+    background: var(--white); border: 1px solid var(--line); border-radius: 9px; cursor: pointer;
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease), border-color .35s;
+  }
+  .ev__card:hover { transform: translateY(-4px); border-color: var(--icon-border); box-shadow: 0 30px 50px -32px rgba(61,74,71,.55); }
+  .ev__photo { display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--bg-soft); }
+  .ev__photo img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--ease); }
+  .ev__card:hover .ev__photo img { transform: scale(1.04); }
+  .ev__body { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 22px 22px 24px; }
+  .ev__date { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+  .ev__title { font-weight: 700; font-size: clamp(17px, 1.15vw, 20px); line-height: 1.3; text-transform: uppercase; letter-spacing: .01em; color: var(--ink); }
+  /* первые строки текста и многоточие; без фото строк больше, чтобы карточка не выглядела пустой */
+  .ev__text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; font-size: 15px; line-height: 1.55; color: var(--text); }
+  .ev__text--long { -webkit-line-clamp: 6; line-clamp: 6; }
+  .ev__more { display: inline-flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 6px; font-weight: 700; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink); }
+  .ev__more :global(svg) { transition: transform .25s var(--ease); }
+  .ev__card:hover .ev__more :global(svg) { transform: translateX(4px); }
+  .ev__more-wrap { display: flex; justify-content: center; margin-top: 40px; }
+
+  @media (max-width: 1180px) { .ev__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) {
+    .ev__grid { grid-template-columns: 1fr; gap: 16px; margin-top: 28px; }
+    .ev__body { padding: 18px 16px 20px; }
+  }
+
+  /* Открытый пост — на весь экран, текст прокручивается, фото целиком (не обрезается) */
+  .epost { width: 100%; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); overflow-y: auto; overscroll-behavior: contain; }
+  .epost::backdrop { background: rgba(61,74,71,.72); }
+  .epost[open] { animation: epost-in .35s var(--ease); }
+  @keyframes epost-in { from { opacity: 0; transform: translateY(24px); } }
+  .epost__close { position: sticky; top: 20px; z-index: 2; float: right; width: 44px; height: 44px; margin: 20px 20px 0 0; background: var(--white); }
+  .epost__inner { max-width: 900px; margin-inline: auto; padding: clamp(56px, 7vw, 96px) var(--gutter) clamp(56px, 7vw, 96px); }
+  .epost__inner :global(.epost__date) { display: block; font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--text); }
+  .epost__inner :global(.epost__title) { margin-top: 14px; font-weight: 700; font-size: clamp(26px, 2.4vw, 42px); line-height: 1.2; text-transform: uppercase; color: var(--ink); }
+  .epost__inner :global(.epost__img) { display: block; width: 100%; height: auto; max-height: 80vh; object-fit: contain; margin-top: 32px; border-radius: 9px; background: var(--bg-soft); }
+  .epost__inner :global(.epost__text) { margin-top: 32px; font-size: clamp(16px, 1.05vw, 18px); line-height: 1.7; color: var(--text); overflow-wrap: anywhere; }
+  .epost__inner :global(.epost__text p + p) { margin-top: .9em; }
+  .epost__inner :global(.epost__text b) { font-weight: 700; }
+  @media (max-width: 640px) {
+    .epost__close { top: 12px; margin: 12px 12px 0 0; }
+    .epost__inner { padding-top: 72px; }
+  }
+</style>
+
+<script>
+  const grid = document.querySelector<HTMLElement>('[data-events]');
+  const modal = document.querySelector<HTMLDialogElement>('[data-event-modal]');
+  if (grid && modal) {
+    const page = Number(grid.dataset.page) || 9;
+    const more = document.querySelector<HTMLButtonElement>('[data-events-more]');
+    const items = Array.from(grid.querySelectorAll<HTMLElement>('.ev__item'));
+    let shown = page;
+
+    // Показываем первые `shown` карточек в текущем порядке
+    const layout = () => {
+      Array.from(grid.children).forEach((li, i) => { (li as HTMLElement).hidden = i >= shown; });
+      if (more) more.hidden = shown >= items.length;
+    };
+
+    // Сортировка: «Сначала новые» — исходный порядок (он уже по дате), «Сначала старые» — обратный
+    document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((b) => b.addEventListener('click', () => {
+      document.querySelectorAll<HTMLButtonElement>('[data-sort]').forEach((x) => {
+        x.classList.toggle('is-active', x === b);
+        x.setAttribute('aria-pressed', String(x === b));
+      });
+      const old = b.dataset.sort === 'old';
+      const sorted = [...items].sort((a, c) => (Number(a.dataset.order) - Number(c.dataset.order)) * (old ? -1 : 1));
+      grid.append(...sorted);
+      shown = page;
+      layout();
+    }));
+    more?.addEventListener('click', () => { shown += page; layout(); });
+
+    // Открыть / закрыть пост
+    const content = modal.querySelector<HTMLElement>('[data-event-content]')!;
+    const open = (slug: string, push = true) => {
+      const tpl = document.querySelector<HTMLTemplateElement>(`template[data-event-full="${CSS.escape(slug)}"]`);
+      if (!tpl) return;
+      content.replaceChildren(tpl.content.cloneNode(true));
+      modal.showModal();
+      modal.scrollTop = 0;
+      document.body.classList.add('no-scroll');
+      if (push) history.replaceState(null, '', `#${slug}`);
+    };
+    document.addEventListener('click', (e) => {
+      const card = (e.target as HTMLElement).closest<HTMLElement>('[data-event]');
+      if (card) open(card.dataset.event!);
+    });
+    modal.querySelector('[data-event-close]')!.addEventListener('click', () => modal.close());
+    modal.addEventListener('close', () => {
+      document.body.classList.remove('no-scroll');
+      if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    });
+
+    // Ссылка вида /about/events/#<slug> сразу открывает пост
+    const fromHash = decodeURIComponent(location.hash.slice(1));
+    if (fromHash && fromHash !== 'news') open(fromHash, false);
+  }
+</script>

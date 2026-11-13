@@ -1,0 +1,13 @@
+{
+  "title": "Георгиевский",
+  "type": "residential",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление SCHUECO (окна AWS 75HI).",
+  "photos": [
+    "/src/content/objects/zhk-georgievsky/01.jpg",
+    "/src/content/objects/zhk-georgievsky/02.jpg",
+    "/src/content/objects/zhk-georgievsky/03.jpg"
+  ],
+  "published": true,
+  "order": 10
+}

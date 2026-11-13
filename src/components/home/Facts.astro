@@ -1,0 +1,104 @@
+---
+// Второй экран главной: «Главное — в фактах».
+// Все 7 карточек одной формы: компактные прямоугольники «матовое стекло» на основе цвета 04 брендбука.
+// Сверху 5 фактов с цифрами, снизу по центру 2 текстовых (данные в src/data/site.ts).
+import Icon from '../Icon.astro';
+import { facts, textFacts } from '../../data/site';
+---
+<section class="section section--white facts" id="about">
+  <div class="pattern pattern--fade-right facts__pattern"></div>
+  <div class="container">
+    <h2 class="h2 facts__title reveal">Главное — в фактах</h2>
+
+    <ul class="facts__grid">
+      {facts.map((f, i) => (
+        <li class="facts__card reveal" style={`transition-delay:${i * 60}ms`}>
+          <Icon name={f.icon} size={34} stroke={1.25} class="facts__icon" />
+          <p class="facts__value">{f.prefix && <span class="facts__prefix">{f.prefix}</span>}{f.value}</p>
+          <p class="facts__label">{f.label}</p>
+        </li>
+      ))}
+      {textFacts.map((f, i) => (
+        <li class="facts__card facts__card--text reveal" style={`transition-delay:${(i + 5) * 60}ms`}>
+          <Icon name={f.icon} size={34} stroke={1.25} class="facts__icon" />
+          <p class="facts__phrase">{f.before}<b>{f.accent}</b>{f.after}</p>
+        </li>
+      ))}
+    </ul>
+
+    <p class="facts__note reveal">Создаём современные светопрозрачные конструкции, которые делают пространство функциональнее, комфортнее и&nbsp;эстетичнее</p>
+  </div>
+</section>
+
+<style>
+  .facts {
+    --cols: 5;
+    --gap: 12px;
+    padding-block: clamp(48px, 5vw, 72px);
+    /* экран целиком: высота окна минус шапка — после стрелки на первом экране третий экран не виден */
+    min-height: calc(100svh - 76px);
+    display: flex; flex-direction: column; justify-content: center;
+    /* фон — еле заметный мятный (цвет 04 брендбука #99BAB8, сильно осветлённый) */
+    background: linear-gradient(180deg, rgba(153, 186, 184, .08) 0%, rgba(153, 186, 184, .15) 100%), #fbfdff;
+  }
+  /* паттерн — тёмный, как на экранах «Расчёт стоимости» и «Как мы работаем» */
+  .facts__pattern { left: 40%; opacity: .06; }
+  .facts__title { position: relative; text-align: center; color: var(--brand-moss); margin-bottom: clamp(28px, 3vw, 40px); }
+
+  /* Компактный ряд по центру: 5 сверху, оставшиеся 2 — по центру ниже */
+  .facts__grid { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: var(--gap); max-width: 1040px; margin-inline: auto; }
+
+  /* Белая карточка «матовое стекло»: еле заметный градиент, блик сверху, мягкая тень */
+  .facts__card {
+    position: relative; isolation: isolate;
+    flex: 0 0 calc((100% - (var(--cols) - 1) * var(--gap)) / var(--cols));
+    aspect-ratio: 3 / 2;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: 14px 12px;
+    border-radius: 16px;
+    background: linear-gradient(150deg, rgba(251,253,255,.96) 0%, rgba(251,253,255,.86) 55%, rgba(251,253,255,.72) 100%);
+    border: 1px solid rgba(251,253,255,.9);
+    box-shadow:
+      inset 0 1px 0 #fbfdff,
+      inset 0 -1px 0 rgba(153, 186, 184, .22),
+      0 14px 30px -20px rgba(61, 74, 71, .38),
+      0 2px 6px -3px rgba(61, 74, 71, .12);
+    backdrop-filter: blur(10px) saturate(1.15);
+    -webkit-backdrop-filter: blur(10px) saturate(1.15);
+    transition: opacity .7s var(--ease), transform .45s var(--ease), box-shadow .35s var(--ease), border-color .35s;
+  }
+  /* мягкий световой блик в верхнем левом углу */
+  .facts__card::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+    background: radial-gradient(120% 80% at 15% 0%, rgba(251,253,255,.9), rgba(251,253,255,0) 60%);
+  }
+  .facts__card:hover {
+    transform: translateY(-3px);
+    border-color: #fbfdff;
+    box-shadow: inset 0 1px 0 #fbfdff, inset 0 -1px 0 rgba(153, 186, 184, .25), 0 20px 36px -20px rgba(61, 74, 71, .45), 0 2px 6px -3px rgba(61, 74, 71, .12);
+  }
+  .facts__icon { width: 26px; height: 26px; color: var(--brand-moss); margin-bottom: 10px; flex: none; }
+  .facts__value { font-weight: 700; font-size: 22px; line-height: 1.15; color: var(--ink); white-space: nowrap; }
+  .facts__prefix { margin-right: .3em; font-weight: 400; font-size: 13px; color: #3d4a47; }
+  /* подпись всегда на 2 строки — цифры во всех карточках стоят на одной линии */
+  .facts__label { margin-top: 5px; min-height: 2.6em; font-size: 12px; line-height: 1.3; color: #3d4a47; max-width: 160px; }
+  .facts__phrase { font-size: 14px; line-height: 1.35; color: #3d4a47; max-width: 170px; }
+  .facts__phrase b { font-weight: 700; color: var(--ink); }
+
+  /* Сноска-цитата под блоками */
+  .facts__note {
+    position: relative; max-width: 560px; margin: clamp(32px, 3.5vw, 48px) auto 0; padding-top: 22px;
+    text-align: center; font-weight: 300; font-size: 15px; line-height: 1.6; color: #708a87;
+  }
+  .facts__note::before { content: ''; position: absolute; top: 0; left: 50%; width: 120px; height: 1px; translate: -50% 0; background: var(--brand-pastel); }
+
+  @media (max-width: 1100px) { .facts { --cols: 4; } .facts__grid { max-width: 860px; } }
+  @media (max-width: 760px) { .facts { --cols: 3; --gap: 10px; } }
+  @media (max-width: 560px) {
+    .facts { --cols: 2; min-height: calc(100svh - 64px); }
+    .facts__note { font-size: 14px; }
+    .facts__card { padding: 12px 10px; border-radius: 14px; }
+    .facts__value { font-size: 20px; }
+    .facts__phrase { font-size: 13px; }
+  }
+</style>

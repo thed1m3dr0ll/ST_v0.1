@@ -1,0 +1,185 @@
+---
+// Первый экран страниц аудиторий («Девелоперам» и др.) — светлый, НЕ фото на весь экран:
+// слева на «Бумаге» крошки, крупный заголовок «Зелёным мхом», текст и круглая кнопка «вниз»;
+// справа фото-трапеция до края окна (левый край срезан по диагонали — зеркально фото в квизе на главной).
+// Деление не ровно пополам: текст ≈ 46 %, фото ≈ 54 %. Экран ниже высоты окна — второй экран чуть выглядывает.
+// Шапка на такой странице должна быть залитой: <Base solidHeader>.
+// На телефоне и планшете: сначала текст, под ним фото со срезанным верхом.
+// Вместо одного фото можно передать несколько (slides) — они плавно сменяют друг друга (страницы услуг):
+// под фото точки по числу фото, нажатие на точку открывает это фото; на телефоне — листание пальцем;
+// само листается раз в 5 с, после нажатия на точку или листания — перестаёт.
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from './Icon.astro';
+
+interface Slide { image: ImageMetadata; alt?: string; position?: string; }
+interface Props {
+  title: string;
+  text?: string;
+  image?: ImageMetadata;
+  alt?: string;
+  slides?: Slide[];  // несколько фото вместо image
+  crumbs?: { label: string; href?: string }[];
+  position?: string; // object-position фото — какую часть кадра показать
+  down?: string;     // якорь следующего экрана ('#approach') — под текстом круглая кнопка со стрелкой
+  full?: boolean;    // страницы услуг: на компьютере экран ровно во всю высоту окна, фото уже, заголовок мельче
+}
+const { title, text, image, alt = '', slides: list, crumbs = [], position = 'center', down, full = false } = Astro.props;
+const slides: Slide[] = list?.length ? list : image ? [{ image, alt, position }] : [];
+const many = slides.length > 1;
+const all = [{ label: 'Главная', href: '/' }, ...crumbs];
+---
+<section class:list={['shero', { 'shero--full': full }]}>
+  <div class="shero__pattern"></div>
+  <div class:list={['shero__media', { 'shero__media--slides': many }]} data-shero-slides={many ? '' : undefined}>
+    {slides.map((s, i) => (
+      <Image src={s.image} alt={s.alt ?? ''} class:list={['shero__img', { 'is-active': i === 0 }]} widths={[640, 960, 1280, 1774]} sizes="(max-width: 900px) 100vw, 54vw" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} style={`object-position:${s.position ?? 'center'}`} aria-hidden={i === 0 ? undefined : 'true'} draggable="false" />
+    ))}
+    {many && (
+      <div class="shero__dots" role="group" aria-label="Фото">
+        {slides.map((_, i) => <button type="button" class:list={['shero__dot', { 'is-active': i === 0 }]} aria-label={`Фото ${i + 1} из ${slides.length}`} aria-current={i === 0 ? 'true' : undefined}></button>)}
+      </div>
+    )}
+  </div>
+  <div class="container shero__inner">
+    <div class="shero__text">
+      <nav class="shero__crumbs" aria-label="Хлебные крошки">
+        {all.map((c, i) => (
+          <>
+            {c.href && i < all.length - 1 ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}
+            {i < all.length - 1 && <span class="shero__sep">/</span>}
+          </>
+        ))}
+      </nav>
+      <h1 class="shero__title">{title}</h1>
+      {text && <p class="shero__lead">{text}</p>}
+      {down && <a href={down} class="shero__down" aria-label="К следующему разделу"><Icon name="arrow-down" size={22} stroke={1} /></a>}
+    </div>
+  </div>
+</section>
+
+<style>
+  .shero {
+    --top: 76px;             /* высота залитой шапки */
+    --media-w: 54vw;         /* ширина фото: чуть больше половины окна */
+    position: relative; overflow: hidden; display: flex; align-items: center;
+    /* ниже высоты окна: фото не растягивается до «пикселей», снизу выглядывает следующий экран */
+    min-height: calc(var(--top) + clamp(440px, 37vw, 620px));
+    padding-top: var(--top);
+    background: linear-gradient(90deg, var(--white) 0%, var(--white) 30%, var(--bg-soft) 100%), var(--white);
+    color: var(--ink);
+  }
+  /* тёмный паттерн еле заметно — только под текстом */
+  .shero__pattern { position: absolute; inset: var(--top) auto 0 0; width: 55%; pointer-events: none; background: url('/images/pattern-dark.webp') left center / cover no-repeat; opacity: .035;
+    -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 45%); mask-image: linear-gradient(270deg, transparent 0%, #000 45%); }
+  .shero__inner { position: relative; padding-block: clamp(40px, 4vw, 64px); }
+  /* текст — в левой части, до диагонали фото остаётся воздух */
+  .shero__text { max-width: calc(100vw - var(--media-w) - max(var(--gutter), (100vw - var(--container)) / 2) - clamp(32px, 4vw, 72px)); }
+  .shero__crumbs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: clamp(22px, 2.6vw, 36px); font-size: 12px; color: var(--text); }
+  .shero__crumbs a { transition: color .25s; }
+  .shero__crumbs a:hover, .shero__crumbs [aria-current] { color: var(--ink); }
+  .shero__title { font-weight: 700; font-size: clamp(34px, 3.9vw, 72px); line-height: 1.12; letter-spacing: -0.01em; text-transform: uppercase; color: var(--ink); }
+  .shero__lead { max-width: 540px; margin-top: clamp(18px, 1.8vw, 28px); font-size: clamp(15px, 1.05vw, 19px); line-height: 1.6; color: var(--ink); }
+
+  /* круглая кнопка «вниз» — как на первых экранах других страниц, но в цветах светлой темы */
+  .shero__down {
+    /* по центру под текстом (ширина текста — до 540px) */
+    display: grid; place-items: center; width: 41px; height: 40px; margin: clamp(26px, 2.6vw, 40px) 0 0 calc(min(540px, 100%) / 2 - 20.5px); border-radius: 100px;
+    border: 1px solid rgba(61,74,71,.45); color: var(--ink); transition: background .25s, color .25s, border-color .25s;
+    animation: shero-bob 2.4s ease-in-out infinite;
+  }
+  .shero__down:hover { background: var(--ink); border-color: var(--ink); color: var(--white); }
+  @keyframes shero-bob { 50% { transform: translateY(6px); } }
+
+  /* фото — трапеция от шапки до низа экрана, прижата к правому краю окна */
+  .shero__media {
+    position: absolute; top: var(--top); right: 0; bottom: 0; width: var(--media-w);
+    clip-path: polygon(11% 0, 100% 0, 100% 100%, 0 100%); background: rgba(153,186,184,.25);
+  }
+  .shero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: shero-zoom 14s var(--ease) both; }
+  @keyframes shero-zoom { from { transform: scale(1.06); } to { transform: scale(1); } }
+
+  /* несколько фото: лежат стопкой, видно активное, смена — плавным растворением с лёгким приближением */
+  .shero__media--slides .shero__img { animation: none; opacity: 0; transform: scale(1.05); transition: opacity 1s var(--ease), transform 7s var(--ease); }
+  .shero__media--slides .shero__img.is-active { opacity: 1; transform: scale(1); }
+  .shero__media--slides { touch-action: pan-y; }
+  /* точки — внизу по центру фото, на полупрозрачной плашке «мха», чтобы читались и на светлом кадре */
+  .shero__dots {
+    position: absolute; left: 50%; bottom: clamp(16px, 1.6vw, 26px); transform: translateX(-50%); z-index: 1;
+    display: flex; gap: 2px; padding: 4px 8px; border-radius: 100px;
+    background: rgba(61,74,71,.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .shero__dot { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .shero__dot::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: rgba(251,253,255,.5); transition: background .3s, transform .3s; }
+  .shero__dot:hover::before { background: rgba(251,253,255,.85); }
+  .shero__dot.is-active::before { background: var(--white); transform: scale(1.35); }
+  .shero__dot:focus-visible { outline: 2px solid var(--white); outline-offset: -2px; border-radius: 50%; }
+
+  /* Страницы услуг (full): все 11 одинаковые — экран ровно во всю высоту окна, а не «по тексту»
+     (раньше высота зависела от длины текста и от того, в сколько строк встал заголовок: 813…954px при окне 922).
+     Фото уже (46 % вместо 54 %), текст описания мельче и шире (заголовок прежний — пробовали уменьшить, пользователь
+     попросил вернуть: уменьшить надо было именно описание).
+     Крошки и заголовок на ВСЕХ страницах на одной высоте (при центровке «прыгали» на 30–60px из-за разной длины текста):
+     верхний отступ рассчитан так, чтобы блок средней длины (≈320px + 9.5vw, замерено на 1280–1903) стоял по центру экрана.
+     Если текст не помещается в окно, экран растёт, а не обрезает кнопку «вниз» */
+  @media (min-width: 901px) {
+    .shero--full { --media-w: 46vw; min-height: max(100svh, 600px); align-items: flex-start; }
+    .shero--full .shero__inner { padding-block: max(32px, (100svh - var(--top) - 320px - 9.5vw) / 2) 48px; }
+    .shero--full .shero__lead { max-width: 600px; font-size: clamp(15px, .85vw, 16px); } /* было до 19px */
+    .shero--full .shero__down { margin-left: calc(min(600px, 100%) / 2 - 20.5px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) { .shero__img, .shero__down { animation: none; } .shero__media--slides .shero__img { transition: opacity .3s; transform: none; } }
+
+  /* планшет и телефон: текст сверху, фото под ним во всю ширину, верх срезан по диагонали */
+  @media (max-width: 900px) {
+    .shero { display: flex; flex-direction: column; align-items: stretch; min-height: 0; }
+    .shero__inner { order: 0; padding-block: 28px 28px; }
+    .shero__text { max-width: none; }
+    .shero__pattern { width: 100%; }
+    .shero__media { order: 1; position: relative; top: auto; bottom: auto; width: auto; aspect-ratio: 16 / 10; clip-path: polygon(0 12%, 100% 0, 100% 100%, 0 100%); }
+    .shero__down { display: none; } /* фото и так сразу под текстом */
+  }
+  @media (max-width: 640px) {
+    .shero { --top: 64px; }
+    .shero__inner { padding-block: 24px; }
+    .shero__crumbs { margin-bottom: 20px; }
+    .shero__media { aspect-ratio: 4 / 3; }
+  }
+</style>
+
+<script>
+  // Листание фото первого экрана (если их несколько): точки, свайп, автосмена раз в 5 с до первого действия человека
+  document.querySelectorAll<HTMLElement>('[data-shero-slides]').forEach((media) => {
+    const imgs = [...media.querySelectorAll<HTMLImageElement>('.shero__img')];
+    const dots = [...media.querySelectorAll<HTMLButtonElement>('.shero__dot')];
+    let cur = 0;
+    let timer: number | undefined;
+    const show = (n: number) => {
+      cur = (n + imgs.length) % imgs.length;
+      imgs.forEach((img, i) => {
+        img.classList.toggle('is-active', i === cur);
+        img.toggleAttribute('aria-hidden', i !== cur);
+        if (i === (cur + 1) % imgs.length) img.loading = 'eager'; // следующее фото — заранее
+      });
+      dots.forEach((d, i) => {
+        d.classList.toggle('is-active', i === cur);
+        if (i === cur) d.setAttribute('aria-current', 'true'); else d.removeAttribute('aria-current');
+      });
+    };
+    const stop = () => { clearInterval(timer); timer = undefined; };
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) timer = window.setInterval(() => show(cur + 1), 5000);
+    dots.forEach((d, i) => d.addEventListener('click', () => { stop(); show(i); }));
+
+    // свайп пальцем (и мышью) влево/вправо
+    let x0: number | null = null;
+    media.addEventListener('pointerdown', (e) => { if (!(e.target as Element).closest('.shero__dots')) x0 = e.clientX; });
+    media.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0;
+      x0 = null;
+      if (Math.abs(dx) > 40) { stop(); show(cur + (dx < 0 ? 1 : -1)); }
+    });
+    media.addEventListener('pointercancel', () => { x0 = null; });
+  });
+</script>

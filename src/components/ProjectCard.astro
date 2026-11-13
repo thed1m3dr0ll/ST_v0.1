@@ -1,0 +1,33 @@
+---
+// Карточка объекта на странице «Объекты»: обложка, тип, название. По клику открывается окно объекта (ObjectModal).
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import { typeLabels, type Project } from '../data/projects';
+interface Props { project: Project; class?: string; }
+const { project: p, class: cls } = Astro.props;
+---
+<button type="button" class:list={['pcard', cls]} data-object={p.slug} aria-haspopup="dialog">
+  <Image src={p.cover} alt={p.title} widths={[480, 800]} sizes="(max-width: 640px) 92vw, (max-width: 1024px) 46vw, 400px" class="pcard__img" />
+  <span class="pcard__shade"></span>
+  <span class="pcard__shine"></span>
+  <span class="pcard__body">
+    <span class="pcard__cat">{typeLabels[p.type]}</span>
+    <span class="pcard__title">{p.title}</span>
+  </span>
+  <span class="icon-btn icon-btn--light pcard__arrow"><Icon name="arrow-right" size={15} /></span>
+</button>
+
+<style>
+  .pcard { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; padding: 0; background: var(--green-900); border: 1px solid var(--line); border-radius: 9px; color: var(--white); text-align: left; cursor: pointer; isolation: isolate; }
+  .pcard__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s var(--ease); }
+  .pcard__shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(61,74,71,.92) 0%, rgba(61,74,71,.6) 30%, rgba(61,74,71,0) 62%); }
+  .pcard__shine { position: absolute; top: 0; bottom: 0; left: -100%; width: 100%; background: linear-gradient(115deg, transparent 42%, rgba(251,253,255,.25) 50%, transparent 58%); transition: left .9s var(--ease); }
+  .pcard__body { position: absolute; left: 18px; right: 64px; bottom: 18px; display: grid; gap: 10px; }
+  .pcard__cat { font-size: 11px; letter-spacing: .025em; text-transform: uppercase; color: rgba(251,253,255,.85); }
+  .pcard__title { font-weight: 700; font-size: 16px; line-height: 1.35; text-transform: uppercase; }
+  .pcard__arrow { position: absolute; right: 14px; bottom: 16px; width: 32px; height: 32px; }
+  .pcard:hover .pcard__img { transform: scale(1.06); }
+  .pcard:hover .pcard__shine { left: 100%; }
+  .pcard:hover .pcard__arrow { background: var(--white); color: var(--green-900); }
+  .pcard:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>

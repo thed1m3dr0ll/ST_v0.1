@@ -1,0 +1,20 @@
+{
+  "title": "Ресторан на Рождественской",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление на системах Alutech.",
+  "photos": [
+    "/src/content/objects/restoran-rozhdestvenskaya/01.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/02.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/03.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/04.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/05.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/06.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/07.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/08.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/09.jpg",
+    "/src/content/objects/restoran-rozhdestvenskaya/10.jpg"
+  ],
+  "published": true,
+  "order": 135
+}

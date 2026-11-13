@@ -1,0 +1,238 @@
+---
+// Блок «Решения для вашего проекта»: слева заголовок, по центру 3D-модель/фото и характеристики,
+// справа выбор системы и консультация. Данные — src/data/systems.ts.
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import { systems, systemOptions, systemsNote } from '../../data/systems';
+---
+<section class="section section--white systems" data-systems>
+  <div class="pattern pattern--fade-left systems__pattern"></div>
+  <div class="container systems__grid">
+    <div class="systems__intro reveal">
+      <p class="eyebrow">Профильные системы</p>
+      <h2 class="h2">Решения <br />для вашего <br />проекта</h2>
+      <p class="lead">Выберите подходящий вариант из списка, рассмотрите его в 3D и изучите ключевые характеристики.</p>
+      <button type="button" class="systems__consult" data-lead="Консультация по выбору системы">
+        <span class="systems__consult-text"><b>Нужна консультация?</b>Поможем подобрать решение под ваш проект</span>
+        <span class="systems__consult-arrow"><Icon name="arrow-right" size={20} /></span>
+      </button>
+    </div>
+
+    <div class="systems__viewer reveal">
+      <div class="systems__stage">
+        {systems.map((s, i) => s.model3d ? (
+          <div class:list={['systems__img p3d', { 'is-active': i === 0 }]} data-system-img={i} data-p3d>
+            <Image src={s.image} alt={s.title} widths={[560, 1120]} sizes="(max-width: 1024px) 100vw, 560px" class="p3d__poster" loading="eager" />
+            <span class="p3d__shadow" aria-hidden="true"></span>
+            <div class="p3d__host" data-p3d-canvas></div>
+            <span class="p3d__badge" aria-hidden="true">360°</span>
+            <button type="button" class="p3d__reset" data-p3d-reset aria-label="Вернуть исходный вид" title="Вернуть исходный вид">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+            <p class="p3d__hint" data-p3d-hint aria-hidden="true">
+              <span class="p3d__hand"><Icon name="hand" size={18} stroke={1.5} /></span>Потяните, чтобы повернуть
+            </p>
+          </div>
+        ) : (
+          <Image
+            src={s.image}
+            alt={s.title}
+            widths={[1040, 1600, 2400]}
+            sizes="(max-width: 768px) 160vw, (max-width: 1180px) 90vw, 1040px"
+            class:list={['systems__img', { 'is-active': i === 0 }]}
+            data-system-img={i}
+          />
+        ))}
+      </div>
+
+      <div class="systems__specs" aria-live="polite">
+        {systems.map((s, i) => (
+          <div class:list={['specs', { 'is-active': i === 0 }]} data-system-specs={i} aria-hidden={i === 0 ? 'false' : 'true'}>
+            <p class="specs__title">Характеристики <span>· {s.title}</span></p>
+            <dl class="specs__list">
+              {s.specs.map((sp) => (
+                <div class="specs__row"><dt>{sp.label}</dt><dd>{sp.value}{sp.note && <span class="specs__sub">{sp.note}</span>}</dd></div>
+              ))}
+              <div class="specs__row specs__row--wide">
+                <dt>Доступные опции</dt>
+                <dd>
+                  <ul class="specs__options">
+                    {(s.options ?? systemOptions).map((o) => (
+                      <li><span class="specs__check"><Icon name="check" size={10} stroke={2.5} /></span>{o}</li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            </dl>
+            <p class="specs__note">{systemsNote}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="systems__side reveal">
+      <div class="systems__list" role="tablist" aria-label="Выберите систему">
+        <p class="systems__list-title">Выберите систему</p>
+        {systems.map((s, i) => (
+          <button type="button" role="tab" aria-selected={i === 0 ? 'true' : 'false'} class:list={['systems__item', { 'is-active': i === 0 }]} data-system={i}>
+            <Image src={s.thumb} alt="" width={80} class="systems__thumb" />
+            <span>{s.title}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* экран целиком: высота окна минус шапка, содержимое по центру */
+  .systems { padding-block: 40px; min-height: calc(100svh - 76px); display: flex; flex-direction: column; justify-content: center; }
+  .systems__pattern { right: 40%; }
+  .systems__grid > * { min-width: 0; }
+  /* 3 колонки, центральная (3D) — ровно по центру экрана */
+  .systems__grid { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 560px minmax(0, 1fr); gap: 36px; align-items: start; }
+  .systems__intro { display: grid; gap: 0; }
+  .systems__intro .eyebrow { margin-bottom: 18px; font-size: 12px; }
+  .systems__intro .h2 { margin-bottom: 24px; font-size: clamp(28px, 2.2vw, 42px); }
+  .systems__intro .lead { color: #708a87; max-width: 300px; }
+  .systems__intro .systems__consult { margin-top: 32px; }
+
+  .systems__viewer { display: grid; gap: 12px; }
+  .systems__stage { position: relative; height: clamp(280px, calc(100svh - 400px), 520px); background: var(--bg-tint); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  /* картинки систем — холст 2:1 с изделием по центру: при любой высоте окна изделие видно целиком,
+     а сама картинка по ширине больше окна (отсюда sizes до 1040px) */
+  .systems__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transform: scale(1.03); transition: opacity .5s var(--ease), transform .8s var(--ease); pointer-events: none; }
+  .systems__img.is-active { opacity: 1; transform: none; pointer-events: auto; z-index: 1; }
+
+  /* 3D-модель профиля */
+  .p3d { overflow: hidden; background: radial-gradient(120% 90% at 50% 40%, #fbfdff 0%, var(--bg-tint) 55%, #fbfdff 100%); }
+  .p3d__poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 4%; transition: opacity .6s var(--ease); }
+  .p3d.is-ready .p3d__poster { opacity: 0; }
+  .p3d__host { position: absolute; inset: 0; }
+  .p3d__host :global(canvas) { display: block; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; outline: none; opacity: 0; transition: opacity .6s var(--ease); }
+  .p3d.is-ready .p3d__host :global(canvas) { opacity: 1; }
+  .p3d.is-dragging .p3d__host :global(canvas) { cursor: grabbing; }
+  .p3d__host :global(canvas:focus-visible) { box-shadow: inset 0 0 0 2px var(--accent); }
+  .p3d__shadow { position: absolute; left: 22%; right: 22%; bottom: 7%; height: 16%; border-radius: 50%; background: radial-gradient(closest-side, rgba(61,74,71,.22), rgba(61,74,71,0)); filter: blur(4px); pointer-events: none; }
+  .p3d__badge, .p3d__reset, .p3d__hint { position: absolute; z-index: 3; }
+  .p3d__badge { right: 16px; top: 16px; padding: 3px 8px; border-radius: 8px; background: rgba(251,253,255,.85); font-size: 11px; color: var(--ink); pointer-events: none; }
+  .p3d__reset { right: 12px; bottom: 12px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: rgba(251,253,255,.85); border: 1px solid var(--line); color: var(--text-2); opacity: 0; transform: scale(.85); transition: opacity .3s, transform .3s var(--ease), color .2s; }
+  .p3d.is-ready .p3d__reset { opacity: 1; transform: none; }
+  .p3d__reset:hover { color: var(--green-900); }
+  .p3d__hint {
+    left: 50%; bottom: 14px; translate: -50% 0; display: flex; align-items: center; gap: 8px; margin: 0;
+    padding: 7px 14px 7px 10px; border-radius: 30px; white-space: nowrap;
+    background: rgba(61,74,71,.82); backdrop-filter: blur(6px); color: #fbfdff; font-size: 12px; pointer-events: none;
+    opacity: 0; transition: opacity .5s var(--ease) .4s, transform .5s var(--ease);
+  }
+  .p3d.is-ready .p3d__hint { opacity: 1; }
+  .p3d .p3d__hint.is-gone { opacity: 0; transform: translateY(8px); transition-delay: 0s; }
+  .p3d__hand { display: grid; animation: p3d-swipe 2.2s var(--ease) infinite; }
+  @keyframes p3d-swipe { 0%, 100% { transform: translateX(-5px) rotate(-8deg); } 50% { transform: translateX(5px) rotate(8deg); } }
+  @media (prefers-reduced-motion: reduce) { .p3d__hand { animation: none; } }
+
+  /* Характеристики выбранной системы — все наборы в одной ячейке, видим только активный */
+  .systems__specs { display: grid; }
+  .specs { grid-area: 1 / 1; padding: 14px 18px 12px; background: #fbfdff; border: 1px solid var(--line); border-radius: 16px; opacity: 0; transform: translateY(8px); visibility: hidden; transition: opacity .45s var(--ease), transform .45s var(--ease), visibility 0s .45s; }
+  .specs.is-active { opacity: 1; transform: none; visibility: visible; transition-delay: 0s; }
+  .specs__title { margin-bottom: 6px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+  .specs__title span { color: var(--ink); }
+  .specs__list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 20px; margin: 0; }
+  .specs__row { display: grid; align-content: start; gap: 1px; padding: 7px 0; border-top: 1px solid var(--line-2); }
+  .specs__row dt { font-size: 11px; color: var(--text-2); }
+  .specs__row dd { margin: 0; font-size: 13px; line-height: 1.35; color: var(--ink); font-weight: 500; }
+  .specs__sub { display: block; margin-top: 1px; font-size: 11px; line-height: 1.3; font-weight: 400; color: var(--text-2); }
+  /* «Доступные опции» — на всю ширину, пункты раскладываются по тем же колонкам, что и характеристики выше */
+  .specs__row--wide { grid-column: 1 / -1; }
+  .specs__options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px 20px; margin: 2px 0 0; padding: 0; list-style: none; }
+  .specs__options li { display: flex; align-items: flex-start; gap: 8px; }
+  .specs__check { display: grid; place-items: center; width: 16px; height: 16px; margin-top: 1px; flex: none; border-radius: 50%; background: var(--icon-bg); color: var(--green-900); }
+  /* сноска — заключительная строка блока */
+  .specs { display: flex; flex-direction: column; }
+  .specs__note { margin: auto 0 0; padding-top: 7px; border-top: 1px solid var(--line-2); font-size: 11px; line-height: 1.4; color: var(--text-2); }
+
+  .systems__side { display: grid; gap: 14px; }
+  .systems__list { display: grid; gap: 4px; padding: 14px 14px 16px; background: rgba(251,253,255,.6); border: 1px solid var(--line); border-radius: 16px; }
+  .systems__list-title { padding: 2px 5px 6px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text); }
+  .systems__item { display: flex; align-items: center; gap: 12px; padding: 6px 8px; border-radius: 10px; text-align: left; font-size: 13px; color: var(--ink); transition: background .25s; }
+  .systems__item:hover { background: var(--bg-soft); }
+  .systems__item.is-active { background: var(--icon-bg); }
+  .systems__thumb { width: 40px; height: 32px; object-fit: cover; border-radius: 6px; flex: none; }
+  .systems__item > span:nth-of-type(1) { flex: 1; }
+  /* квадратики со стрелками справа от названий убраны по просьбе пользователя (2026-11-09) — выбор виден подсветкой строки */
+
+  /* Консультация — заметная тёмная карточка */
+  .systems__consult {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding: 18px 18px 18px 20px; border-radius: 16px; text-align: left;
+    background: var(--brand-moss); color: rgba(251,253,255,.75);
+    font-size: 13px; line-height: 1.45; box-shadow: 0 16px 30px -20px rgba(61,74,71,.6);
+    transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .systems__consult-text { display: grid; gap: 4px; }
+  .systems__consult b { font-weight: 700; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #fbfdff; }
+  .systems__consult-arrow { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; background: rgba(251,253,255,.14); color: #fbfdff; transition: background .3s, transform .3s var(--ease); }
+  .systems__consult:hover { transform: translateY(-2px); box-shadow: 0 22px 36px -20px rgba(61,74,71,.7); }
+  .systems__consult:hover .systems__consult-arrow { background: var(--accent); transform: translateX(3px); }
+
+  @media (max-width: 1180px) {
+    .systems__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+    .systems__intro { grid-column: 1 / -1; }
+    .systems__intro .h2 br { display: none; }
+    .systems__intro .lead { max-width: 520px; }
+    .systems__intro .systems__consult { max-width: 420px; margin-top: 24px; }
+    .systems { min-height: 0; padding-block: clamp(56px, 6vw, 88px); }
+    .systems__stage { height: auto; aspect-ratio: 560 / 440; }
+  }
+  @media (max-width: 768px) {
+    .systems__grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    .systems__side { display: contents; }
+    /* scroll-padding равен padding: иначе прилипание прижимает кнопку вплотную к рамке списка */
+    .systems__list { order: 1; grid-auto-flow: column; grid-auto-columns: 78%; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 10px; padding: 10px; }
+    .systems__list-title { display: none; }
+    .systems__item { scroll-snap-align: start; }
+    .systems__viewer { order: 2; }
+    .specs__list, .specs__options { grid-template-columns: 1fr 1fr; }
+    /* слева — профильная система и материал, справа — применение на их высоту */
+    .specs__row:nth-child(1) { grid-area: 1 / 1; }
+    .specs__row:nth-child(2) { grid-area: 2 / 1; }
+    .specs__row:nth-child(3) { grid-area: 1 / 2 / 3 / 3; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-systems]').forEach((root) => {
+    const items = [...root.querySelectorAll<HTMLButtonElement>('[data-system]')];
+    const imgs = [...root.querySelectorAll<HTMLElement>('[data-system-img]')];
+    const specs = [...root.querySelectorAll<HTMLElement>('[data-system-specs]')];
+    const list = root.querySelector<HTMLElement>('.systems__list')!;
+    let current = 0;
+
+    // 3D-модель подгружаем, только когда секция близко к экрану
+    const p3dRoot = root.querySelector<HTMLElement>('[data-p3d]');
+    const p3dIndex = p3dRoot ? imgs.indexOf(p3dRoot) : -1;
+    let p3d: { setActive(a: boolean): void } | null = null;
+    if (p3dRoot) {
+      const io = new IntersectionObserver(async ([e]) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        const { mountProfile3D } = await import('../../scripts/profile3d');
+        p3d = mountProfile3D(p3dRoot);
+        p3d?.setActive(current === p3dIndex);
+      }, { rootMargin: '400px' });
+      io.observe(p3dRoot);
+    }
+
+    // система открывается кликом (на телефоне — касанием) по её карточке в списке
+    const select = (i: number) => {
+      current = i;
+      items.forEach((b, k) => { b.classList.toggle('is-active', k === current); b.setAttribute('aria-selected', String(k === current)); });
+      imgs.forEach((img, k) => img.classList.toggle('is-active', k === current));
+      specs.forEach((s, k) => { s.classList.toggle('is-active', k === current); s.setAttribute('aria-hidden', String(k !== current)); });
+      p3d?.setActive(current === p3dIndex);
+      // на телефоне список листается горизонтально — подкручиваем к активной системе
+      if (list.scrollWidth > list.clientWidth) list.scrollTo({ left: items[current].offsetLeft - list.offsetLeft - 10, behavior: 'smooth' });
+    };
+    items.forEach((b, i) => b.addEventListener('click', () => select(i)));
+  });
+</script>

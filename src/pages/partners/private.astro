@@ -1,0 +1,109 @@
+---
+// «Частным лицам» (/partners/private/) — страница аудитории, открывается с карточки на «Партнерам».
+// Устроена как «Девелоперам» и «Владельцам бизнеса»: светлый первый экран (текст + фото-трапеция, шапка сразу залита) →
+// «Каким может быть ваш дом» (колода фото, Deck.astro, под ней 4 блока-стекло) → экран-фраза на мятном фоне →
+// «Наши объекты» (карусель, все объекты группы «Частные объекты») → светлая полоса «Рассчитаем стоимость» с фото (форма заявки) → подвал.
+// Фото — node tools/prep-private.cjs (src/assets/private).
+import Base from '../../layouts/Base.astro';
+import SplitHero from '../../components/SplitHero.astro';
+import Deck from '../../components/Deck.astro';
+import Projects from '../../components/home/Projects.astro';
+import ObjectModal from '../../components/ObjectModal.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { projects } from '../../data/projects';
+import heroImg from '../../assets/private/hero.jpg';
+// Полоса «Рассчитаем стоимость» — коттедж в деревне Ройка
+import ctaImg from '../../assets/private/cta-royka.jpg';
+
+import deck1 from '../../assets/private/deck/01.jpg';
+import deck2 from '../../assets/private/deck/02.jpg';
+import deck3 from '../../assets/private/deck/03.jpg';
+import deck4 from '../../assets/private/deck/04.jpg';
+import deck5 from '../../assets/private/deck/05.jpg';
+
+const deck = [
+  { img: deck1, alt: 'Солнечная веранда с панорамным остеклением и видом на сад' },
+  { img: deck2, alt: 'Светлая гостиная со стеклянной перегородкой кабинета' },
+  { img: deck3, alt: 'Терраса загородного дома со стеклянным ограждением' },
+  { img: deck4, alt: 'Оранжерея со стеклянной крышей, зеленью и креслами' },
+  { img: deck5, alt: 'Гостиная с панорамными окнами в пол и видом на сад' },
+];
+
+const qualities = [
+  { title: 'Эстетика', text: 'Остекление, гармонично дополняющее архитектуру дома.' },
+  { title: 'Комфорт', text: 'Подбор решений с учётом требований к теплоизоляции и условий эксплуатации.' },
+  { title: 'Надёжность', text: 'Конструкции, рассчитанные на предусмотренные нагрузки и условия использования.' },
+  { title: 'Долговечность', text: 'Качественные материалы и внимание к исполнению конструкций.' },
+];
+
+// «Наши объекты» — все объекты из группы «Частные объекты» на странице «Объекты» (в том же порядке).
+// Новый коттедж, добавленный в админке, появится здесь сам.
+const privateObjects = projects.filter((p) => p.type === 'private');
+---
+<Base solidHeader title="Частным лицам" description="Индивидуальный подход к каждому проекту, качественные материалы и продуманные решения для комфортного и долговечного остекления вашего дома.">
+  <SplitHero
+    title="Частным лицам"
+    text="Индивидуальный подход к каждому проекту, качественные материалы и продуманные решения для комфортного и долговечного остекления вашего дома."
+    image={heroImg}
+    alt="Девушка с книгой в гостиной с панорамным остеклением и видом на сад"
+    crumbs={[{ label: 'Партнерам', href: '/partners/' }, { label: 'Частным лицам' }]}
+    position="18% 50%"
+    down="#home-deck"
+  />
+
+  <Deck id="home-deck" title="Каким может быть ваш дом" items={deck}>
+    <ul class="qualities">
+      {qualities.map((q, i) => (
+        <li class="qualities__card reveal" style={`transition-delay:${i * 90}ms`}>
+          <h3 class="qualities__title">{q.title}</h3>
+          <p class="qualities__text">{q.text}</p>
+        </li>
+      ))}
+    </ul>
+  </Deck>
+
+  <section class="section phrase">
+    <div class="pattern phrase__pattern"></div>
+    <div class="container">
+      <p class="phrase__text reveal">Помогаем раскрыть архитектуру дома, наполнить пространство светом и создать комфортную атмосферу для жизни и отдыха.</p>
+    </div>
+  </section>
+
+  <Projects title="Наши объекты" text="" items={privateObjects} rounded />
+
+  <CtaBand
+    title="Рассчитаем стоимость"
+    text="Расскажите о вашем доме и пожеланиях к остеклению — подготовим предварительный расчёт, подберём профильные системы и предложим решение именно для вашего проекта."
+    button="Оставить заявку на расчёт"
+    light
+    image={ctaImg}
+    position="50% 50%"
+  />
+
+  <ObjectModal projects={privateObjects} />
+</Base>
+
+<style>
+  /* Блоки под колодой: светлое полупрозрачное стекло на тёмном фоне, 4 в ряд */
+  .qualities { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.4vw, 24px); }
+  .qualities__card {
+    padding: clamp(22px, 2vw, 34px) clamp(20px, 1.8vw, 30px);
+    border-radius: 9px; border: 1px solid rgba(251,253,255,.24);
+    background: linear-gradient(150deg, rgba(251,253,255,.18), rgba(251,253,255,.07));
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+    box-shadow: 0 24px 48px -30px rgba(0,0,0,.6), inset 0 1px 0 rgba(251,253,255,.22);
+  }
+  .qualities__title { font-weight: 700; font-size: clamp(17px, 1.3vw, 22px); line-height: 1.3; text-transform: uppercase; letter-spacing: .01em; color: var(--white); }
+  .qualities__text { margin-top: 10px; font-size: clamp(14px, .95vw, 16px); line-height: 1.6; color: var(--white); opacity: .8; }
+  @media (max-width: 1024px) { .qualities { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 560px) { .qualities { grid-template-columns: minmax(0, 1fr); } }
+
+  /* Экран-фраза: мятный фон с тёмным паттерном (как «Комплексный подход» на «Девелоперам»), крупный текст по центру */
+  .phrase { padding-block: clamp(32px, 3.6vw, 60px); background: linear-gradient(135deg, rgba(153,186,184,.55) 0%, rgba(153,186,184,.3) 55%, rgba(153,186,184,.45) 100%), var(--white); }
+  .phrase__pattern { opacity: .07; }
+  .phrase__text {
+    position: relative; max-width: 900px; margin-inline: auto; text-align: center;
+    font-weight: 500; font-size: clamp(17px, 1.4vw, 24px); line-height: 1.5; letter-spacing: -.005em; color: var(--ink);
+    text-wrap: balance;
+  }
+</style>

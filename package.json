@@ -1,0 +1,27 @@
+{
+  "name": "steklyanika-site",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "cms": "node tools/cms-server.cjs",
+    "cms:update": "node tools/copy-decap.cjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "deploy": "astro build && netlify deploy --prod --dir=dist --no-build"
+  },
+  "dependencies": {
+    "astro": "^7.3.5",
+    "sharp": "^0.35.5",
+    "swiper": "^14.3.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "decap-cms": "3.17.1",
+    "decap-server": "3.11.5",
+    "netlify-cli": "^26.2.0"
+  }
+}

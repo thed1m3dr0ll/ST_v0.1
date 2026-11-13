@@ -1,0 +1,75 @@
+---
+// Уведомление о cookie внизу экрана: две кнопки «Принять» / «Отклонить», в тексте — ссылки на политики.
+// Показывается, пока посетитель не выбрал (выбор помнится год, см. src/scripts/cookies.ts).
+// Закрывается только этими двумя кнопками: крестика нет и не будет (решение заказчика).
+// Открыть снова — любая кнопка/ссылка с атрибутом data-cookie-settings (в подвале — «Настройки cookie»).
+// Что загружать по итогам выбора, решает src/scripts/trackers.ts.
+import { docHref } from '../data/docs';
+---
+<div class="cookie" data-cookie role="region" aria-label="Уведомление о файлах cookie" hidden>
+  <p class="cookie__text">
+    Мы используем файлы cookie для улучшения работы сайта и удобства его использования. Нажимая «Принять», вы соглашаетесь с условиями обработки данных в соответствии с нашей <a href={docHref('privacy')}>Политикой обработки персональных данных</a> и <a href={docHref('cookies')}>Политикой использования файлов cookie</a>.
+  </p>
+  <div class="cookie__btns">
+    <button type="button" class="cookie__btn cookie__btn--accept" data-cookie-accept>Принять</button>
+    <button type="button" class="cookie__btn" data-cookie-decline>Отклонить</button>
+  </div>
+</div>
+
+<style>
+  .cookie {
+    position: fixed; right: 16px; bottom: 16px; z-index: 90;
+    display: flex; flex-direction: column; gap: 14px;
+    width: min(460px, calc(100% - 32px)); padding: 20px 22px;
+    border-radius: 9px; background: rgba(61,74,71,.94); color: rgba(251,253,255,.85);
+    box-shadow: 0 12px 40px rgba(0,0,0,.25); backdrop-filter: blur(12px);
+    animation: cookie-in .45s var(--ease) both;
+  }
+  .cookie[hidden] { display: none; }
+  @keyframes cookie-in { from { opacity: 0; transform: translateY(16px); } }
+  .cookie__text { font-size: 13px; line-height: 1.55; }
+  .cookie__text a { color: var(--brand-paper); text-decoration: underline; text-decoration-color: var(--brand-pastel); text-underline-offset: 2px; transition: color .2s; }
+  .cookie__text a:hover { color: var(--brand-pastel); }
+  .cookie__btns { display: flex; gap: 8px; } /* кнопки под текстом, делят ширину блока поровну */
+  /* кнопки одного размера и веса — отказ не прячем */
+  .cookie__btn {
+    flex: 1; min-height: 40px; padding: 10px 18px; border-radius: 9px;
+    border: 1px solid rgba(251,253,255,.5); background: transparent; color: var(--brand-paper);
+    font-size: 12px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; cursor: pointer;
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .cookie__btn:hover { border-color: var(--brand-pastel); background: rgba(251,253,255,.08); }
+  .cookie__btn--accept { border-color: var(--brand-paper); background: var(--brand-paper); color: var(--brand-moss); }
+  .cookie__btn--accept:hover { border-color: var(--brand-pastel); background: var(--brand-pastel); color: var(--brand-moss); }
+  .cookie__btn:focus-visible { outline: 2px solid var(--brand-pastel); outline-offset: 2px; }
+
+  @media (max-width: 760px) {
+    .cookie { right: 12px; bottom: 12px; width: calc(100% - 24px); padding: 16px; }
+    .cookie__text { font-size: 12px; }
+  }
+</style>
+
+<script>
+  import { getCookieChoice, initConsent, onConsentChange, setCookieChoice, type CookieChoice } from '../scripts/cookies';
+  import { initTrackers } from '../scripts/trackers';
+
+  const banner = document.querySelector<HTMLElement>('[data-cookie]')!;
+  initConsent();
+  initTrackers();
+  const syncBanner = () => { banner.hidden = getCookieChoice() !== null; };
+  syncBanner();
+  onConsentChange(syncBanner); // выбор сделан в этой или другой вкладке
+
+  let source: 'banner' | 'settings' = 'banner';
+  const choose = (choice: CookieChoice) => { setCookieChoice(choice, source); source = 'banner'; };
+  banner.querySelector('[data-cookie-accept]')!.addEventListener('click', () => choose('accepted'));
+  banner.querySelector('[data-cookie-decline]')!.addEventListener('click', () => choose('declined'));
+
+  document.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('[data-cookie-settings]')) return;
+    e.preventDefault();
+    if (getCookieChoice() !== null) source = 'settings'; // если выбора ещё нет, это первый выбор, а не его изменение
+    banner.hidden = false;
+    banner.querySelector<HTMLElement>('[data-cookie-accept]')!.focus();
+  });
+</script>

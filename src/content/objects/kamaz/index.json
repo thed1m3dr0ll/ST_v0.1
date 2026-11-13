@@ -1,0 +1,18 @@
+{
+  "title": "Центр КАМАЗ",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление на системах Alutech.",
+  "photos": [
+    "/src/content/objects/kamaz/01.jpg",
+    "/src/content/objects/kamaz/02.jpg",
+    "/src/content/objects/kamaz/03.jpg",
+    "/src/content/objects/kamaz/04.jpg",
+    "/src/content/objects/kamaz/05.jpg",
+    "/src/content/objects/kamaz/06.jpg",
+    "/src/content/objects/kamaz/07.jpg",
+    "/src/content/objects/kamaz/08.jpg"
+  ],
+  "published": true,
+  "order": 110
+}

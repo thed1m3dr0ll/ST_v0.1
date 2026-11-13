@@ -1,0 +1,245 @@
+---
+// Блок сертификатов (главная и «Партнерам»): текст слева, справа карусель — три сертификата пирамидкой
+// (главный впереди, два поменьше по бокам), стрелки листают по кругу все сертификаты списка: следующий выезжает
+// на место соседнего, крайний уходит. По клику — увеличенный просмотр. Список — src/data/certificates.ts.
+// (components/Certificates.astro — старый блок с карточками, сейчас ни на одной странице не стоит.)
+import { Image, getImage } from 'astro:assets';
+import Icon from '../Icon.astro';
+import { certificates } from '../../data/certificates';
+
+interface Props {
+  title?: string; // перенос строки — через \n
+}
+const { title = 'Работаем\nс надёжными\nпартнёрами' } = Astro.props;
+const titleLines = title.split('\n');
+
+// Три места пирамидкой. Считаем в долях ширины главного сертификата, потом растягиваем на всю ширину сцены (в %).
+interface Params {
+  mid: number;    // ширина боковых относительно главного
+  midOut: number; // какая часть бокового выглядывает из-за главного
+  frontY: number; // насколько главный ниже боковых
+}
+// Компьютер: композиция вытянута по горизонтали. Телефон: плотнее, чтобы сертификаты не были слишком мелкими.
+const WIDE: Params = { mid: 0.8, midOut: 0.8, frontY: 0.29 };
+const COMPACT: Params = { mid: 0.72, midOut: 0.62, frontY: 0.29 };
+
+// Все места одного формата — по самому вытянутому листу; сертификат вписывается в него целиком,
+// поэтому любые два боковых совпадают по ширине и высоте и стоят на одной линии.
+const ratios = certificates.map((c) => c.image.height / c.image.width);
+const sheet = Math.max(1, ...ratios);
+
+function layout(S: Params) {
+  const slots = [
+    { x: 0, y: S.frontY, w: 1 },                        // главный
+    { x: 1 - S.mid * (1 - S.midOut), y: 0, w: S.mid },  // справа
+    { x: -S.mid * S.midOut, y: 0, w: S.mid },           // слева
+  ];
+  const minX = Math.min(...slots.map((s) => s.x));
+  const k = 100 / (Math.max(...slots.map((s) => s.x + s.w)) - minX);
+  const scaled = slots.map((s) => ({ x: (s.x - minX) * k, y: s.y * k, w: s.w * k }));
+  return { slots: scaled, height: Math.max(...scaled.map((s) => s.y + s.w * sheet)) };
+}
+
+const large = await Promise.all(certificates.map((c) => getImage({ src: c.image, width: Math.min(1600, c.image.width), format: 'webp' })));
+const r = (v: number) => Math.round(v * 100) / 100;
+
+const { slots: d3, height: deskH } = layout(WIDE);
+const { slots: m3, height: mobH } = layout(COMPACT);
+// Места: f — главный, r/l — боковые; or/ol — невидимые, откуда выезжает следующий и куда уходит крайний.
+const OUT = 12; // насколько (в % ширины) невидимые места сдвинуты наружу от боковых
+const place = (s: { x: number; y: number; w: number }, dx = 0) => ({ x: r(s.x + dx), y: r(s.y), w: r(s.w) });
+const deskPlaces = { f: place(d3[0]), r: place(d3[1]), l: place(d3[2]), or: place(d3[1], OUT), ol: place(d3[2], -OUT) };
+const mobPlaces = { f: place(m3[0]), r: place(m3[1]), l: place(m3[2]), or: place(m3[1], OUT), ol: place(m3[2], -OUT) };
+const placeVars = Object.entries(deskPlaces).map(([k, p]) => `--${k}-x:${p.x};--${k}-y:${p.y};--${k}-w:${p.w}`)
+  .concat(Object.entries(mobPlaces).map(([k, p]) => `--m${k}-x:${p.x};--m${k}-y:${p.y};--m${k}-w:${p.w}`))
+  .join(';');
+
+// Порядок по кругу: слева от 1-го стоит 3-й, справа — 2-й (как в обычной композиции), дальше — остальные.
+const n = certificates.length;
+const order = n >= 3 ? [2, 0, 1, ...certificates.slice(3).map((_, i) => i + 3)] : certificates.map((_, i) => i);
+const start = n >= 3 ? 1 : 0;
+// То же правило, что в скрипте ниже: смещение от текущего → место
+function slotOf(j: number, cur: number) {
+  const half = Math.floor(n / 2);
+  const off = ((((j - cur) % n) + n) % n + half) % n - half;
+  return off === 0 ? 'front' : off === 1 ? 'right' : off === -1 ? 'left' : off > 0 ? 'out-right' : 'out-left';
+}
+---
+<section class="section section--dark home-certs" id="certificates">
+  <div class="pattern pattern--fade-right"></div>
+  <div class="container home-certs__grid">
+    <div class="home-certs__intro reveal">
+      <h2 class="h2">{titleLines.map((l, i) => <>{l}{i < titleLines.length - 1 && <br />}</>)}</h2>
+      <p class="lead">В проектах преимущественно используем профильные системы Алютех — технологичные, функциональные и качественные решения, проверенные временем.</p>
+    </div>
+
+    {n > 0 && (
+      <div class="home-certs__carousel reveal" data-cert-carousel data-start={start}>
+        <button type="button" class="home-certs__nav" aria-label="Предыдущий сертификат" data-cert-prev hidden={n < 2}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+        </button>
+        <div class="home-certs__stage" style={`--ar:${r(deskH)};--m-ar:${r(mobH)};--sheet:${Math.round(sheet * 10000) / 10000};${placeVars}`} data-cert-stage>
+          {order.map((idx, j) => {
+            const c = certificates[idx];
+            const slot = slotOf(j, start);
+            const hidden = slot.startsWith('out');
+            return (
+              <button
+                type="button"
+                class="home-certs__item"
+                data-slot={slot}
+                data-cert-open={large[idx].src}
+                data-cert-alt={c.alt}
+                aria-label={`Открыть: ${c.alt}`}
+                aria-hidden={hidden ? 'true' : undefined}
+                tabindex={hidden ? -1 : undefined}
+              >
+                <Image src={c.image} alt={c.alt} widths={[200, 320, 480, 640]} sizes="(max-width: 640px) 50vw, 230px" class="home-certs__img" />
+              </button>
+            );
+          })}
+        </div>
+        <button type="button" class="home-certs__nav" aria-label="Следующий сертификат" data-cert-next hidden={n < 2}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+        </button>
+      </div>
+    )}
+  </div>
+
+  <dialog class="cert-box" data-cert-box aria-label="Просмотр сертификата">
+    <button type="button" class="cert-box__close" aria-label="Закрыть" data-cert-close><Icon name="x" size={28} /></button>
+    <img src="" alt="" class="cert-box__img" data-cert-img />
+  </dialog>
+</section>
+
+<style>
+  .home-certs { padding-block: 80px 56px; }
+  .home-certs__grid {
+    position: relative; max-width: calc(1080px + var(--gutter) * 2);
+    display: grid; grid-template-columns: 380px minmax(0, 600px); justify-content: space-between; column-gap: 64px; row-gap: 28px; align-items: start;
+  }
+  .home-certs__intro { display: grid; justify-items: start; }
+  .home-certs__intro .h2 { margin-bottom: 26px; }
+  .home-certs__grid { grid-template-rows: auto 1fr; }
+
+  /* Карусель: стрелки по бокам, между ними сцена */
+  .home-certs__carousel { grid-column: 2; grid-row: 1 / span 2; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+  @media (min-width: 1300px) { .home-certs__carousel { margin-right: -44px; } }
+  .home-certs__nav { display: grid; place-items: center; width: 36px; height: 56px; color: rgba(251,253,255,.75); transition: color .25s var(--ease); }
+  .home-certs__nav svg { width: 30px; height: 30px; }
+  .home-certs__nav:hover { color: var(--white); }
+
+  /* Сцена: каждый сертификат позиционируется по --x/--y/--w (в % ширины), их задаёт место (data-slot) */
+  .home-certs__stage { position: relative; container-type: inline-size; aspect-ratio: 100 / var(--ar); touch-action: pan-y; }
+  .home-certs__item {
+    position: absolute; z-index: var(--z);
+    left: calc(var(--x) * 1%); top: calc(var(--y) * 1cqi); width: calc(var(--w) * 1%);
+    aspect-ratio: 1 / var(--sheet); /* все листы одного формата */
+    display: block; padding: 0; background: #fbfdff; cursor: zoom-in;
+    /* при смене места сертификат плавно переезжает */
+    transition: left .6s var(--ease), top .6s var(--ease), width .6s var(--ease), opacity .6s var(--ease),
+      transform .4s var(--ease), box-shadow .4s var(--ease), filter .6s var(--ease);
+  }
+  .home-certs__img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .home-certs__item:hover, .home-certs__item:focus-visible { transform: translateY(-6px); filter: none; }
+  .home-certs__item:focus-visible { outline: 2px solid var(--brand-pastel); outline-offset: 4px; }
+  .home-certs__item[data-slot='front'] { --x: var(--f-x); --y: var(--f-y); --w: var(--f-w); --m-x: var(--mf-x); --m-y: var(--mf-y); --m-w: var(--mf-w); --z: 3;
+    box-shadow: 0 40px 70px -28px rgba(0,0,0,.65), 0 10px 24px -12px rgba(0,0,0,.35); }
+  .home-certs__item[data-slot='right'] { --x: var(--r-x); --y: var(--r-y); --w: var(--r-w); --m-x: var(--mr-x); --m-y: var(--mr-y); --m-w: var(--mr-w); --z: 2; }
+  .home-certs__item[data-slot='left'] { --x: var(--l-x); --y: var(--l-y); --w: var(--l-w); --m-x: var(--ml-x); --m-y: var(--ml-y); --m-w: var(--ml-w); --z: 2; }
+  .home-certs__item[data-slot='out-right'] { --x: var(--or-x); --y: var(--or-y); --w: var(--or-w); --m-x: var(--mor-x); --m-y: var(--mor-y); --m-w: var(--mor-w); --z: 1; }
+  .home-certs__item[data-slot='out-left'] { --x: var(--ol-x); --y: var(--ol-y); --w: var(--ol-w); --m-x: var(--mol-x); --m-y: var(--mol-y); --m-w: var(--mol-w); --z: 1; }
+  .home-certs__item[data-slot='right'], .home-certs__item[data-slot='left'] { box-shadow: 0 26px 48px -24px rgba(0,0,0,.6); filter: brightness(.9); }
+  .home-certs__item[data-slot^='out'] { opacity: 0; pointer-events: none; filter: brightness(.78); }
+  .home-certs__item[data-slot='front']:hover { box-shadow: 0 50px 80px -28px rgba(0,0,0,.7), 0 12px 28px -12px rgba(0,0,0,.4); }
+  @media (max-width: 1100px) {
+    .home-certs__grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; justify-content: stretch; }
+    .home-certs__carousel { grid-column: 1; grid-row: auto; width: 100%; max-width: calc(600px + 88px); }
+  }
+  @media (max-width: 640px) {
+    .home-certs { padding-block: 56px 48px; }
+    .home-certs__grid { row-gap: 24px; }
+    .home-certs__stage { aspect-ratio: 100 / var(--m-ar); }
+    .home-certs__item { left: calc(var(--m-x) * 1%); top: calc(var(--m-y) * 1cqi); width: calc(var(--m-w) * 1%); }
+    .home-certs__carousel { gap: 2px; margin-inline: -8px; width: auto; }
+    .home-certs__nav { width: 28px; height: 48px; }
+    .home-certs__nav svg { width: 24px; height: 24px; }
+  }
+
+  /* Увеличенный просмотр */
+  .cert-box {
+    position: fixed; inset: 0; width: 100%; height: 100%; max-width: none; max-height: none;
+    margin: 0; padding: 0; border: 0; background: transparent; overflow: hidden; cursor: zoom-out;
+  }
+  .cert-box[open] { display: grid; place-items: center; animation: cert-fade .25s var(--ease); }
+  .cert-box::backdrop { background: rgba(61,74,71,.92); }
+  .cert-box__img {
+    width: auto; height: auto; max-width: calc(100vw - 112px); max-height: calc(100dvh - 112px);
+    object-fit: contain; cursor: default; box-shadow: 0 30px 80px rgba(0,0,0,.5);
+  }
+  .cert-box__close {
+    position: absolute; top: 16px; right: 16px; display: grid; place-items: center;
+    width: 44px; height: 44px; color: #fbfdff; cursor: pointer; transition: opacity .2s;
+  }
+  .cert-box__close:hover { opacity: .7; }
+  @keyframes cert-fade { from { opacity: 0; } }
+  @media (max-width: 640px) {
+    .cert-box__img { max-width: calc(100vw - 24px); max-height: calc(100dvh - 128px); }
+    .cert-box__close { top: 8px; right: 8px; }
+  }
+</style>
+
+<script>
+  const box = document.querySelector<HTMLDialogElement>('[data-cert-box]');
+  if (box) {
+    const img = box.querySelector<HTMLImageElement>('[data-cert-img]')!;
+    const root = document.documentElement;
+    document.querySelectorAll<HTMLElement>('[data-cert-open]').forEach((el) => el.addEventListener('click', () => {
+      img.src = el.dataset.certOpen!;
+      img.alt = el.dataset.certAlt ?? '';
+      const bar = window.innerWidth - root.clientWidth;
+      root.style.overflow = 'hidden';
+      if (bar > 0) root.style.paddingRight = `${bar}px`;
+      box.showModal();
+    }));
+    // Закрытие: крестик, клик мимо картинки, Escape (Escape закрывает <dialog> сам).
+    box.querySelector('[data-cert-close]')!.addEventListener('click', () => box.close());
+    box.addEventListener('click', (e) => { if (e.target !== img) box.close(); });
+    box.addEventListener('close', () => { root.style.overflow = ''; root.style.paddingRight = ''; img.removeAttribute('src'); });
+  }
+
+  // Карусель: листаем по кругу, каждому сертификату выдаём место по смещению от текущего (то же правило, что в разметке).
+  document.querySelectorAll<HTMLElement>('[data-cert-carousel]').forEach((carousel) => {
+    const stage = carousel.querySelector<HTMLElement>('[data-cert-stage]')!;
+    const items = [...stage.querySelectorAll<HTMLElement>('[data-cert-open]')];
+    const n = items.length;
+    if (n < 2) return;
+    const half = Math.floor(n / 2);
+    let cur = Number(carousel.dataset.start) || 0;
+
+    const render = () => items.forEach((el, j) => {
+      const off = ((((j - cur) % n) + n) % n + half) % n - half;
+      const slot = off === 0 ? 'front' : off === 1 ? 'right' : off === -1 ? 'left' : off > 0 ? 'out-right' : 'out-left';
+      const hidden = slot.startsWith('out');
+      el.dataset.slot = slot;
+      el.tabIndex = hidden ? -1 : 0;
+      if (hidden) el.setAttribute('aria-hidden', 'true'); else el.removeAttribute('aria-hidden');
+    });
+    const go = (step: number) => { cur = (cur + step + n) % n; render(); };
+
+    carousel.querySelector('[data-cert-prev]')!.addEventListener('click', () => go(-1));
+    carousel.querySelector('[data-cert-next]')!.addEventListener('click', () => go(1));
+
+    // Свайп на телефоне. После свайпа гасим «клик», чтобы не открылся просмотр сертификата.
+    let x0: number | null = null;
+    let swiped = false;
+    stage.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') { x0 = e.clientX; swiped = false; } });
+    stage.addEventListener('pointerup', (e) => {
+      if (x0 === null) return;
+      const dx = e.clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) { swiped = true; go(dx < 0 ? 1 : -1); }
+    });
+    stage.addEventListener('pointercancel', () => { x0 = null; });
+    stage.addEventListener('click', (e) => { if (swiped) { swiped = false; e.stopPropagation(); e.preventDefault(); } }, true);
+  });
+</script>

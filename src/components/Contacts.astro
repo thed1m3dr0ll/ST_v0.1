@@ -1,0 +1,95 @@
+---
+import Icon from './Icon.astro';
+import { site } from '../data/site';
+interface Props { title?: string; }
+const { title = 'Свяжитесь\nс нами' } = Astro.props;
+// Встроенной карты Яндекса на сайте нет: она передаёт данные посетителя Яндексу без согласия (решение от 05.11.2026).
+// Вместо неё блок с адресом и переход на карточку организации в Яндекс Картах — обычная ссылка, до клика ничего не отправляется.
+const lines = title.split('\n');
+---
+<section class="section section--white contacts" id="contacts">
+  <div class="container contacts__grid">
+    <div class="contacts__intro reveal">
+      <h2 class="h2">{lines.map((l, i) => <>{l}{i < lines.length - 1 && <br />}</>)}</h2>
+      <p class="lead">Мы всегда на связи и готовы ответить на ваши вопросы, проконсультировать и предложить оптимальное решение.</p>
+      <button type="button" class="btn" data-lead="Оставить заявку">Оставить заявку <Icon name="arrow-right" /></button>
+    </div>
+
+    <!-- Посередине — контакты по отделам (данные в contacts.json → site.departments).
+         Адрес и время работы здесь не повторяем: они в блоке «Построить маршрут» справа. -->
+    <ul class="contacts__deps reveal">
+      {site.departments.map((d) => (
+        <li class="contacts__dep">
+          <span class="contacts__dep-title">{d.title}</span>
+          {d.phone && <a href={d.phoneHref}><span class="contacts__ic"><Icon name="phone" size={12} /></span><b>{d.phone}</b></a>}
+          {d.email && <a href={`mailto:${d.email}`}><span class="contacts__ic"><Icon name="mail" size={12} /></span><b>{d.email}</b></a>}
+        </li>
+      ))}
+    </ul>
+
+    <!-- Справа — адрес с маршрутом, под ним VK -->
+    <div class="contacts__side reveal">
+      <div class="contacts__place">
+        <div class="contacts__place-top">
+          <span class="contacts__pin"><Icon name="pin" size={14} /></span>
+          <div>
+            <b>Стекляника</b>
+            <span>{site.address}</span>
+            <span>{site.workHours}</span>
+          </div>
+        </div>
+        <a href={site.mapLink} target="_blank" rel="noopener" class="btn contacts__route">Построить маршрут <Icon name="arrow-right" /></a>
+      </div>
+      <ul class="contacts__social">
+        <li><a class="contacts__vk" href={site.vk} target="_blank" rel="noopener"><span class="contacts__ic"><Icon name="vk" size={16} /></span><b>Мы в VK</b></a></li>
+        {site.hh && <li><a class="contacts__vk" href={site.hh} target="_blank" rel="noopener"><span class="contacts__ic contacts__ic--txt">hh</span><b>hh.ru</b></a></li>}
+        {site.dreamjob && <li><a class="contacts__vk" href={site.dreamjob} target="_blank" rel="noopener"><span class="contacts__ic contacts__ic--txt">DJ</span><b>DreamJob</b></a></li>}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .contacts { padding-block: 96px 96px; }
+  .contacts__grid > * { min-width: 0; }
+  /* справа — узкий блок адреса, прижат к правому краю; посередине — отделы */
+  .contacts__grid { display: grid; grid-template-columns: 290px minmax(0, 1fr) 320px; gap: 24px 36px; align-items: start; }
+  /* верх заголовка — на одной линии с верхом карты (у карты margin-top: 50px) */
+  .contacts__intro { display: grid; justify-items: start; margin-top: 50px; }
+  .contacts__intro .h2 { margin-top: -.31em; margin-bottom: 22px; } /* -.31em — убираем пустоту шрифта над буквами */
+  .contacts__intro .lead { margin-bottom: 26px; }
+  .contacts__intro .btn { font-size: 11px; min-height: 40px; }
+  .contacts__deps { display: grid; gap: 10px; justify-self: center; width: min(100%, 340px); margin-top: 50px; }
+  .contacts__dep { display: grid; gap: 7px; padding: 12px 16px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg-soft); }
+  .contacts__dep-title { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+  .contacts__dep a, .contacts__vk { display: flex; align-items: center; gap: 10px; color: var(--ink); min-width: 0; }
+  .contacts__dep b { font-weight: 700; font-size: 13px; overflow-wrap: anywhere; }
+  .contacts__dep .contacts__ic { width: 24px; height: 24px; border-radius: 7px; }
+  .contacts__ic { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 9px; background: #708a87; color: #fbfdff; transition: background .25s; }
+  .contacts__dep a:hover .contacts__ic, .contacts__vk:hover .contacts__ic { background: var(--green-900); }
+  .contacts__side { display: grid; gap: 18px; justify-items: start; margin-top: 50px; }
+  .contacts__social { display: grid; gap: 12px; }
+  .contacts__vk { gap: 12px; }
+  .contacts__ic--txt { font-size: 12px; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+  .contacts__vk b { font-weight: 700; font-size: 15px; }
+  .contacts__place { display: grid; gap: 20px; justify-self: stretch; padding: 24px; border: 1px solid var(--line); border-radius: 9px; background: var(--bg-soft); }
+  .contacts__place-top { display: flex; gap: 12px; }
+  .contacts__place-top b { display: block; margin-bottom: 6px; font-size: 14px; text-transform: uppercase; color: var(--ink); }
+  .contacts__place-top span:not(.contacts__pin) { display: block; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+  .contacts__pin { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 9px; background: var(--green-900); color: #fbfdff; }
+  .contacts__route { justify-self: start; min-height: 40px; font-size: 11px; }
+  @media (max-width: 1180px) {
+    .contacts__intro { margin-top: 0; }
+    .contacts__intro .h2 { margin-top: 0; }
+    .contacts__grid { grid-template-columns: 1fr 1fr; }
+    .contacts__deps { margin-top: 0; justify-self: stretch; width: auto; }
+    .contacts__side { grid-column: 1 / -1; margin-top: 16px; }
+  }
+  @media (max-width: 640px) {
+    .contacts { padding-block: 56px; }
+    .contacts__grid { grid-template-columns: 1fr; }
+    .contacts__deps { margin-top: 8px; }
+    .contacts__place { padding: 18px; }
+    .contacts__route { justify-self: stretch; justify-content: center; }
+  }
+</style>

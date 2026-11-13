@@ -1,0 +1,91 @@
+---
+// Страница одной вакансии (/careers/<slug>/). Данные — src/content/vacancies/*.json (админка /admin/), чтение — src/data/vacancies.ts.
+// Внизу кнопка «Откликнуться»: есть ссылка на hh.ru — ведёт туда (в новой вкладке), нет — открывает форму резюме на сайте.
+// Пустые блоки (нет обязанностей / требований / условий) и пустые характеристики не выводятся.
+import Base from '../../layouts/Base.astro';
+import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
+import ResumeModal from '../../components/ResumeModal.astro';
+import heroImg from '../../assets/career.jpg';
+import { vacancies, type Vacancy } from '../../data/vacancies';
+
+export function getStaticPaths() {
+  return vacancies.map((v) => ({ params: { slug: v.slug }, props: { v } }));
+}
+const { v } = Astro.props as { v: Vacancy };
+const blocks = [
+  { title: 'Обязанности', items: v.duties },
+  { title: 'Требования', items: v.requirements },
+  { title: 'Условия', items: v.conditions },
+].filter((b) => b.items.length);
+---
+<Base title={`${v.title} — вакансия`} description={`Вакансия «${v.title}» в компании Стекляника: ${v.place.toLowerCase()}, ${v.employment}. Обязанности, требования и условия работы.`}>
+  <PageHero
+    title={v.title}
+    text={`${v.place} · ${v.employment}`}
+    image={heroImg}
+    crumbs={[{ label: 'Вакансии', href: '/careers/' }, { label: v.title }]}
+    mobileLow
+  />
+
+  <section class="section vpage">
+    <div class="pattern pattern--fade-right"></div>
+    <div class="container vpage__inner">
+      {v.facts.length > 0 && <ul class="vpage__facts" style={`--cols:${Math.min(v.facts.length, 4)}`}>
+        {v.facts.map((f) => (
+          <li class="vpage__fact reveal">
+            <span class="vpage__fact-label">{f.label}</span>
+            <span class="vpage__fact-value">{f.value}</span>
+          </li>
+        ))}
+      </ul>}
+
+      {blocks.map((b) => (
+        <article class="vpage__block reveal">
+          <h2 class="vpage__h">{b.title}</h2>
+          <ul class="vpage__list">
+            {b.items.map((it) => <li>{it}</li>)}
+          </ul>
+        </article>
+      ))}
+
+      <div class="vpage__cta reveal">
+        {v.hh ? (
+          <>
+            <p>Заинтересовала вакансия? Откликнитесь на hh.ru — мы рассмотрим вашу кандидатуру и свяжемся с вами.</p>
+            <a class="btn" href={v.hh} target="_blank" rel="noopener noreferrer">Откликнуться <Icon name="arrow-right" /></a>
+          </>
+        ) : (
+          <>
+            <p>Заинтересовала вакансия? Отправьте резюме — мы рассмотрим вашу кандидатуру и свяжемся с вами.</p>
+            <button type="button" class="btn" data-resume={`Отклик: ${v.title}`}>Откликнуться <Icon name="arrow-right" /></button>
+          </>
+        )}
+      </div>
+      <a class="vpage__back" href="/careers/"><Icon name="arrow-left" size={14} /> Все вакансии</a>
+    </div>
+  </section>
+  {!v.hh && <ResumeModal />}
+</Base>
+
+<style>
+  .vpage { background: linear-gradient(180deg, rgba(153,186,184,.3), rgba(153,186,184,.16)), var(--bg); }
+  .vpage__inner { position: relative; display: grid; gap: 12px; }
+  .vpage__facts { display: grid; grid-template-columns: repeat(var(--cols, 4), 1fr); gap: 12px; margin-bottom: 12px; }
+  .vpage__fact { display: grid; gap: 8px; align-content: start; padding: 20px 22px; border-radius: 9px; background: var(--white); }
+  .vpage__fact-label { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-2); }
+  .vpage__fact-value { font-weight: 700; font-size: clamp(15px, 1.05vw, 18px); line-height: 1.35; color: var(--brand-moss); }
+  .vpage__block { padding: clamp(22px, 2.4vw, 36px) clamp(20px, 2.6vw, 40px); border-radius: 9px; background: var(--white); }
+  .vpage__h { margin-bottom: 18px; font-weight: 700; font-size: clamp(18px, 1.5vw, 24px); line-height: 1.25; text-transform: uppercase; letter-spacing: .01em; color: var(--brand-moss); }
+  .vpage__list { display: grid; gap: 10px; max-width: 900px; }
+  .vpage__list li { position: relative; padding-left: 22px; font-size: clamp(14px, .95vw, 16px); line-height: 1.55; color: var(--brand-moss); }
+  .vpage__list li::before { content: ''; position: absolute; left: 2px; top: .62em; width: 8px; height: 8px; border-radius: 2px; background: var(--brand-pastel); }
+  .vpage__cta { display: flex; align-items: center; justify-content: space-between; gap: 16px 32px; flex-wrap: wrap; margin-top: 12px; padding: 24px 28px; border-radius: 9px; background: var(--green-900); color: var(--white); font-weight: 500; }
+  .vpage__cta p { max-width: 720px; line-height: 1.5; }
+  .vpage__cta .btn { --btn-bg: var(--white); --btn-fg: var(--green-900); --btn-bd: var(--white); }
+  .vpage__cta .btn:hover { --btn-bg: var(--accent); --btn-fg: var(--white); --btn-bd: var(--accent); }
+  .vpage__back { display: inline-flex; align-items: center; gap: 8px; justify-self: start; margin-top: 12px; font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--green-900); }
+  .vpage__back:hover { color: var(--accent); }
+  @media (max-width: 1024px) { .vpage__facts { grid-template-columns: repeat(min(var(--cols, 4), 2), 1fr); } }
+  @media (max-width: 520px) { .vpage__facts { grid-template-columns: 1fr; } .vpage__cta { padding: 22px 18px; } }
+</style>

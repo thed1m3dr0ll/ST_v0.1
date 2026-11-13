@@ -1,0 +1,17 @@
+{
+  "title": "Новакард",
+  "type": "commercial",
+  "location": "г. Нижний Новгород",
+  "works": "Остекление на системах Alutech.",
+  "photos": [
+    "/src/content/objects/novakard/01.jpg",
+    "/src/content/objects/novakard/02.jpg",
+    "/src/content/objects/novakard/03.jpg",
+    "/src/content/objects/novakard/04.jpg",
+    "/src/content/objects/novakard/05.jpg",
+    "/src/content/objects/novakard/06.jpg",
+    "/src/content/objects/novakard/07.jpg"
+  ],
+  "published": true,
+  "order": 120
+}

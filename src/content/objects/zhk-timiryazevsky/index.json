@@ -1,0 +1,15 @@
+{
+  "title": "Тимирязевский",
+  "type": "residential",
+  "location": "г. Нижний Новгород",
+  "works": "Фасадная система Alutech ALT F50.\nЦельностеклянные козырьки над входами с применением системы крепления на вантах.",
+  "photos": [
+    "/src/content/objects/zhk-timiryazevsky/01.jpg",
+    "/src/content/objects/zhk-timiryazevsky/02.jpg",
+    "/src/content/objects/zhk-timiryazevsky/03.jpg",
+    "/src/content/objects/zhk-timiryazevsky/04.jpg",
+    "/src/content/objects/zhk-timiryazevsky/05.jpg"
+  ],
+  "published": true,
+  "order": 30
+}

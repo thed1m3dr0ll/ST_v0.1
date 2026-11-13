@@ -1,0 +1,17 @@
+{
+  "title": "Деревня Ройка",
+  "type": "private",
+  "location": "Нижегородская область",
+  "works": "Остекление Alutech (окна ALT W72 HI+, витражи ALT F50), RAICO (подъёмно-раздвижные двери SLIFT).",
+  "photos": [
+    "/src/content/objects/royka/01.jpg",
+    "/src/content/objects/royka/02.jpg",
+    "/src/content/objects/royka/03.jpg",
+    "/src/content/objects/royka/04.jpg",
+    "/src/content/objects/royka/05.jpg",
+    "/src/content/objects/royka/06.jpg",
+    "/src/content/objects/royka/07.jpg"
+  ],
+  "published": true,
+  "order": 60
+}

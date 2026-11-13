@@ -1,0 +1,94 @@
+---
+import { Image } from 'astro:assets';
+import SectionHead from '../SectionHead.astro';
+import Icon from '../Icon.astro';
+import bg from '../../assets/why-novokard.jpg'; // реальный объект — Новокард
+
+const items = [
+  { icon: 'cycle', title: 'Комплексный подход', text: 'Обеспечиваем полный цикл работ, от проектирования до монтажа, один подрядчик — все этапы реализации.' },
+  { icon: 'arch-facade', title: 'Сложные технические объекты', text: 'Не избегаем нестандартных решений. Подбираем систему с учётом особенностей объекта.' },
+  { icon: 'badge-check', title: 'Гарантия и поддержка', text: 'Обеспечиваем надёжность и сервис на всех этапах эксплуатации.' },
+  { icon: 'hard-hat', title: 'Опытная команда', text: 'Инженеры, архитекторы и проектные менеджеры с многолетним опытом в отрасли.' },
+  { icon: 'route', title: 'Собственная логистика', text: 'Оперативно доставляем материалы на объекты по всей России.' },
+];
+---
+<section class="section why">
+  <Image src={bg} alt="" class="why__bg" widths={[768, 1280, 1536]} sizes="(max-width: 1024px) 100vw, 64vw" />
+  <span class="why__haze"></span>
+  <div class="why__shade"></div>
+  <div class="container why__inner">
+    <SectionHead title="Почему нас выбирают">
+      <button type="button" class="btn why__btn" data-lead="Обсудить проект">Обсудить проект <Icon name="arrow-right" /></button>
+    </SectionHead>
+
+    <ul class="why__grid">
+      {items.map((it, i) => (
+        <li class="why__card reveal" style={`transition-delay:${(i % 3) * 80}ms`}>
+          <span class="icon-tile why__icon"><Icon name={it.icon} size={20} /></span>
+          <h3 class="h3 why__card-title">{it.title}</h3>
+          <p class="why__card-text">{it.text}</p>
+        </li>
+      ))}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .why { background: var(--bg-soft); padding-block: 42px 40px; }
+  /* фото — только справа и приглушённо: исходник 1536px, на всю ширину было бы мыльно */
+  .why__bg { position: absolute; top: 0; right: 0; width: 64%; height: 100%; object-fit: cover; object-position: center 40%; opacity: 1;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.6) 25%, #000 60%); mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.6) 25%, #000 60%); }
+  /* «туман»: слева фото размыто, к правому краю становится чётким */
+  .why__haze { position: absolute; inset: 0; pointer-events: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    -webkit-mask-image: linear-gradient(90deg, #000 40%, transparent 70%); mask-image: linear-gradient(90deg, #000 40%, transparent 70%); }
+  /* фон — «Пастельно-бирюзовый» из брендбука, справа плавно открывает фото здания; светлые карточки на нём не сливаются */
+  .why__shade { position: absolute; inset: 0; background:
+    linear-gradient(90deg, rgba(153,186,184,.42) 0%, rgba(153,186,184,.36) 45%, rgba(153,186,184,0) 90%),
+    linear-gradient(90deg, #fbfdff 0%, rgba(251,253,255,.85) 42%, rgba(251,253,255,0) 88%); } /* бледный «Пастельно-бирюзовый» поверх «Бумаги» */
+  .why__inner { position: relative; }
+  .why__btn { --btn-bg: var(--brand-moss); --btn-bd: var(--brand-moss); min-height: 36px; padding: 9px 22px; font-size: 12px; }
+  .why :global(.sec-head .h2) { color: var(--brand-moss); }
+  @media (min-width: 1025px) {
+    /* экран на всю высоту окна под шапкой, как «Факты» и «Системы»: на ноутбуке не видно краёв соседних экранов */
+    .why { min-height: calc(100svh - 76px); display: flex; flex-direction: column; justify-content: center; padding-block: 32px 80px; } /* снизу отступ больше — содержимое чуть выше центра */
+    .why :global(.sec-head__title) { padding-top: 35px; } /* чуть меньше 40px — у крупного шрифта больше воздуха над буквами */
+    /* описания нет — кнопка «Обсудить проект» справа, на линии заголовка */
+    .why :global(.sec-head) { grid-template-columns: max-content auto; }
+    .why :global(.sec-head__aside) { padding-top: 40px; } /* кнопка — по центру строки заголовка */
+  }
+
+  /* 5 карточек одного размера: сверху три, снизу две по центру (сетка на 6 колонок).
+     Высота у всех одинаковая — по самой «высокой» карточке. */
+  .why__grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; gap: 10px; margin-top: 46px; }
+  .why__card { grid-column: span 2; }
+  .why__card:nth-child(4) { grid-column: 2 / span 2; }
+  .why__card:nth-child(5) { grid-column: 4 / span 2; }
+
+  /* Внутри: значок слева отдельно, заголовок и описание — с одной вертикальной линии */
+  .why__card {
+    display: grid; grid-template-columns: 39px minmax(0, 1fr); grid-template-rows: auto 1fr; column-gap: 14px; row-gap: 8px; align-content: start;
+    padding: 18px 20px 20px; background: rgba(251,253,255,.88); border: 1px solid var(--line-2); border-radius: 16px; /* как у карточек фактов на 2-м экране */
+    box-shadow: 0 14px 30px -22px rgba(61,74,71,.35); backdrop-filter: blur(2px);
+    transition: background .3s, box-shadow .3s;
+  }
+  .why__card:hover { background: #fbfdff; box-shadow: 0 24px 40px -28px rgba(61,74,71,.35); }
+  .why__icon { grid-row: 1 / span 2; width: 39px; height: 36px; background: var(--brand-moss); border-color: var(--brand-moss); color: var(--brand-paper); }
+  .why__card-title { align-self: center; min-height: 36px; display: flex; align-items: center; color: var(--brand-moss); }
+  .why__card-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+  @media (max-width: 1024px) {
+    /* планшет: по две в ряд, пятая — того же размера, по центру */
+    .why__grid { grid-template-columns: repeat(4, 1fr); }
+    .why__card, .why__card:nth-child(4) { grid-column: span 2; }
+    .why__card:nth-child(5) { grid-column: 2 / span 2; }
+    .why__bg { width: 100%; -webkit-mask-image: none; mask-image: none; }
+    .why__haze { display: none; }
+    .why__shade { background:
+      linear-gradient(rgba(153,186,184,.4), rgba(153,186,184,.4)),
+      linear-gradient(180deg, #fbfdff 0%, rgba(251,253,255,.9) 55%, rgba(251,253,255,.6) 100%); }
+  }
+  @media (max-width: 640px) {
+    .why__grid { grid-template-columns: 1fr; grid-auto-rows: auto; margin-top: 28px; }
+    .why__card, .why__card:nth-child(4), .why__card:nth-child(5) { grid-column: auto; }
+    .why__card { padding: 16px; column-gap: 12px; border-radius: 14px; }
+  }
+</style>

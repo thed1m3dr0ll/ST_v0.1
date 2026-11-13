@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Contacts from '../components/Contacts.astro';
+import Consult from '../components/Consult.astro';
+import heroImg from '../assets/photos/yaroslavskaya-3.jpg';
+import { site } from '../data/site';
+---
+<Base title="Контакты" description={`Контакты Стекляники: телефон ${site.phone}, ${site.email}, ${site.address.replace(/^г\.\s*/, '')}.`}>
+  <PageHero
+    title="Контакты"
+    text="Мы всегда на связи и готовы ответить на ваши вопросы."
+    image={heroImg}
+    position="center 70%"
+    crumbs={[{ label: 'Контакты' }]}
+    aside={'Больше света.\nБольше возможностей.'}
+    down="#contacts"
+    downMobileOnly
+  />
+  <Contacts title={'Свяжитесь\nс нами'} />
+  <Consult />
+</Base>
